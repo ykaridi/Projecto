@@ -5,7 +5,7 @@
 #define COLS (3)
 
 int main() {
-    soduku_board board = *create_board(ROWS, COLS);
+    sudoku_board board = *create_board(ROWS, COLS);
     for(int sub_board_i = 0; sub_board_i < board.rows; sub_board_i++) {
         for (int inner_i = 0; inner_i < board.rows; inner_i++) {
             for (int sub_board_j = 0; sub_board_j < board.cols; sub_board_j++) {

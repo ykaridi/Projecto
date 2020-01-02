@@ -17,7 +17,7 @@ void print_repeated(char* s, int times) {
     }
 }
 
-void print_board(const soduku_board *board) {
+void print_board(const sudoku_board *board) {
     int n_len = num_length(board->sub_board_size, 10);
     int total_len = (2 + (n_len + 2) * board->cols) * board->cols + 1;
     for(int sub_board_i = 0; sub_board_i < board->rows; sub_board_i++) {
