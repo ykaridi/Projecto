@@ -1,7 +1,6 @@
 #ifndef SUDOKU_GAME_H
 #define SUDOKU_GAME_H
 
-
 struct _sudoku_board {
     int rows;
     int cols;
