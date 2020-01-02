@@ -1,0 +1,5 @@
+#include "soduku_game.h"
+
+int num_length(int x, int base);
+void print_repeated(char* s, int times);
+void print_board(const soduku_board *board);
