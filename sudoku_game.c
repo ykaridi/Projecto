@@ -33,8 +33,8 @@ sudoku_board_t *create_board(int rows, int cols) {
     }
 
     for (int i = 0; i < rows * rows * cols * cols; i++) {
-        board->board[i] = 0;
-        board->cell_metadata[i] = ' ';
+        board->board[i] = EMPTY_CELL;
+        board->cell_metadata[i] = EMPTY_METADATA;
     }
 
     return board;
@@ -46,6 +46,16 @@ void destruct_board(sudoku_board_t *board) {
     free(board->board);
     free(board->cell_metadata);
     free(board);
+}
+/// Clears board of temporary cells
+/// \param board Sudoku board object
+void clear_board_temps(sudoku_board_t *board) {
+    for (int i = 0; i < board->rows; i++) {
+        for (int j = 0; j < board->cols; j++) {
+            if (get_cell_metadata_flattened(board, i, j) == TEMPORARY_METADATA)
+                set_cell_flattened(board, EMPTY_CELL, i, j);
+        }
+    }
 }
 
 /// Checks if an index is valid
@@ -74,43 +84,172 @@ int is_in_board_flattened(const sudoku_board_t *board, int i, int j) {
 /// \param sub_board_j
 /// \param inner_i
 /// \param inner_j
-/// \return Cell value
+/// \return Cell value (or ERROR on error)
 int get_cell(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
     return board->board[ARR_CONVERSION];
 }
-
+/// Returns a cell's value
+/// \param board Sudoku board object
+/// \param i
+/// \param j
+/// \return Cell value (or ERROR on error)
 int get_cell_flattened(const sudoku_board_t *board, int i, int j) {
     return get_cell(board, FLAT_CONVERSION);
 }
-
+/// Sets a cell's value
+/// \param board Sudoku board object
+/// \param value Cell's new value
+/// \param sub_board_i
+/// \param sub_board_j
+/// \param inner_i
+/// \param inner_j
+/// \return Success flag
 int set_cell(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
-    board->board[ARR_CONVERSION] = value;
-    return 0;
-}
+    if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
+        return ERROR;
+    if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
+        return ERROR;
 
+    board->board[ARR_CONVERSION] = value;
+    return SUCCESS;
+}
+/// Sets a cell's value
+/// \param board Sudoku board object
+/// \param value Cell's new value
+/// \param i
+/// \param j
+/// \return Success flag
 int set_cell_flattened(sudoku_board_t *board, int value, int i, int j) {
     return set_cell(board, value, FLAT_CONVERSION);
 }
 
+/// Retuns a cell's metadata
+/// \param board Sudoku board object
+/// \param sub_board_i
+/// \param sub_board_j
+/// \param inner_i
+/// \param inner_j
+/// \return Cell metadata (or ERROR on error)
 char get_cell_metadata(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
+    if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
+        return ERROR;
+
     return board->cell_metadata[ARR_CONVERSION];
 }
-
+/// Retuns a cell's metadata
+/// \param board Sudoku board object
+/// \param i
+/// \param j
+/// \return Cell metadata (or ERROR on error)
 char get_cell_metadata_flattened(const sudoku_board_t *board, int i, int j) {
     return get_cell_metadata(board, FLAT_CONVERSION);
 }
-
+/// Sets a cell's metadata
+/// \param board Sudoku board object
+/// \param metadata Cell's new metadata
+/// \param sub_board_i
+/// \param sub_board_j
+/// \param inner_i
+/// \param inner_j
+/// \return Success flag
 int set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
+    if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
+        return ERROR;
+    if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
+        return ERROR;
+
     board->cell_metadata[ARR_CONVERSION] = metadata;
     return 0;
 }
-
+/// Sets a cell's metadata
+/// \param board Sudoku board object
+/// \param metadata Cell's new metadata
+/// \param i
+/// \param j
+/// \return Success flag
 int set_cell_metadata_flattened(sudoku_board_t *board, char metadata, int i, int j) {
     return set_cell_metadata(board, metadata, FLAT_CONVERSION);
 }
 
-int check_row(int row, int idx, int value);
-int check_column(int row, int idx, int value);
-int check_sub_board(int sub_board_i, int sub_board_j, int idx_i, int idx_j);
+/// Checks if row is currently legal, if value > 0 checks that it doesn't already exist in row
+/// \param board Sudoku board object
+/// \param row
+/// \param value
+/// \return Boolean flag
+int check_row(const sudoku_board_t *board, int row, int value) {
+    for (int col1 = 0; col1 < board->cols; col1++) {
+        int current_cell = get_cell_flattened(board, row, col1);
+        if (current_cell == 0)
+            continue;
+
+        if (value > 0) {
+            if (current_cell == value)
+                return FALSE;
+        } else {
+            for (int col2 = col1 + 1; col2 < board->cols; col2++) {
+                if (current_cell == get_cell_flattened(board, row, col2))
+                    return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
+}
+/// Checks if column is currently legal, if value > 0 checks that it doesn't already exist in column
+/// \param board Sudoku board object
+/// \param col
+/// \param value
+/// \return Boolean flag
+int check_column(const sudoku_board_t *board, int col, int value) {
+    for (int row1 = 0; row1 < board->rows; row1++) {
+        int current_cell = get_cell_flattened(board, row1, col);
+        if (current_cell == 0)
+            continue;
+
+        if (value > 0) {
+            if (current_cell == value)
+                return FALSE;
+        } else {
+            for (int row2 = row1 + 1; row2 < board->cols; row2++) {
+                if (current_cell == get_cell_flattened(board, row2, col))
+                    return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
+}
+/// Checks if sub board is currently legal, if value > 0 checks that it doesn't already exist in sub board
+/// \param board Sudoku board object
+/// \param sub_board_i
+/// \param sub_board_j
+/// \param value
+/// \return Boolean flag
+int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int value) {
+    for (int inner_i1 = 0; inner_i1 < board->rows; inner_i1++) {
+        for (int inner_j1 = 0; inner_j1 < board->cols; inner_j1++) {
+            int current_cell = get_cell(board, sub_board_i, sub_board_j, inner_i1, inner_j1);
+            if (current_cell == EMPTY_CELL)
+                continue;
+
+            if (value > 0) {
+                if (current_cell == value)
+                    return FALSE;
+            } else {
+                for (int inner_i2 = 0; inner_i2 < board->rows; inner_i2++) {
+                    for (int inner_j2 = 0; inner_j2 < board->cols; inner_j2++) {
+                        if (inner_i1 == inner_i2 && inner_j1 == inner_j2)
+                            continue;
+
+                        if (get_cell(board, sub_board_i, sub_board_j, inner_i2, inner_j2) == current_cell)
+                            return FALSE;
+                    }
+                }
+            }
+        }
+    }
+
+    return TRUE;
+}
