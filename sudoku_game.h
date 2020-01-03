@@ -6,6 +6,8 @@
 #define ERROR (-1)
 #define SUCCESS (0)
 
+#define SUB_BOARD_CONVERSION i / board->cols, j / board->rows
+
 #define EMPTY_CELL (0)
 
 #define FIXED_METADATA ('.')
@@ -15,6 +17,8 @@
 struct _sudoku_board_t {
     int rows;
     int cols;
+    int total_rows;
+    int total_cols;
     int sub_board_size;
 
     int* board;
@@ -49,5 +53,6 @@ int set_cell_metadata_flattened(sudoku_board_t *board, char metadata, int i, int
 int check_row(const sudoku_board_t *board, int row, int value);
 int check_column(const sudoku_board_t *board, int col, int value);
 int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int value);
+int check_board(const sudoku_board_t *board);
 
 #endif

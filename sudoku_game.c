@@ -24,6 +24,8 @@ sudoku_board_t *create_board(int rows, int cols) {
 
     board->rows = rows;
     board->cols = cols;
+    board->total_rows = rows * rows;
+    board->total_cols = cols * cols;
     board->sub_board_size = rows * cols;
 
     board->board = malloc(sizeof(int) * rows * rows * cols * cols);
@@ -50,10 +52,12 @@ void destruct_board(sudoku_board_t *board) {
 /// Clears board of temporary cells
 /// \param board Sudoku board object
 void clear_board_temps(sudoku_board_t *board) {
-    for (int i = 0; i < board->rows; i++) {
-        for (int j = 0; j < board->cols; j++) {
-            if (get_cell_metadata_flattened(board, i, j) == TEMPORARY_METADATA)
+    for (int i = 0; i < board->total_rows; i++) {
+        for (int j = 0; j < board->total_cols; j++) {
+            if (get_cell_metadata_flattened(board, i, j) == TEMPORARY_METADATA) {
                 set_cell_flattened(board, EMPTY_CELL, i, j);
+                set_cell_metadata_flattened(board, EMPTY_METADATA, i, j);
+            }
         }
     }
 }
@@ -179,7 +183,7 @@ int set_cell_metadata_flattened(sudoku_board_t *board, char metadata, int i, int
 /// \param value
 /// \return Boolean flag
 int check_row(const sudoku_board_t *board, int row, int value) {
-    for (int col1 = 0; col1 < board->cols; col1++) {
+    for (int col1 = 0; col1 < board->total_cols; col1++) {
         int current_cell = get_cell_flattened(board, row, col1);
         if (current_cell == 0)
             continue;
@@ -188,7 +192,7 @@ int check_row(const sudoku_board_t *board, int row, int value) {
             if (current_cell == value)
                 return FALSE;
         } else {
-            for (int col2 = col1 + 1; col2 < board->cols; col2++) {
+            for (int col2 = col1 + 1; col2 < board->total_cols; col2++) {
                 if (current_cell == get_cell_flattened(board, row, col2))
                     return FALSE;
             }
@@ -203,7 +207,7 @@ int check_row(const sudoku_board_t *board, int row, int value) {
 /// \param value
 /// \return Boolean flag
 int check_column(const sudoku_board_t *board, int col, int value) {
-    for (int row1 = 0; row1 < board->rows; row1++) {
+    for (int row1 = 0; row1 < board->total_rows; row1++) {
         int current_cell = get_cell_flattened(board, row1, col);
         if (current_cell == 0)
             continue;
@@ -212,7 +216,7 @@ int check_column(const sudoku_board_t *board, int col, int value) {
             if (current_cell == value)
                 return FALSE;
         } else {
-            for (int row2 = row1 + 1; row2 < board->cols; row2++) {
+            for (int row2 = row1 + 1; row2 < board->total_rows; row2++) {
                 if (current_cell == get_cell_flattened(board, row2, col))
                     return FALSE;
             }
@@ -248,6 +252,27 @@ int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_
                     }
                 }
             }
+        }
+    }
+
+    return TRUE;
+}
+/// Checks if a board is solved correctly
+/// \param board Sudoku board object
+/// \return Boolean success flag
+int check_board(const sudoku_board_t *board) {
+    for (int i = 0; i < board->total_rows; i++) {
+        if (check_row(board, i, 0) == FALSE)
+            return FALSE;
+    }
+    for (int j = 0; j < board->total_cols; j++) {
+        if (check_column(board, j, 0) == FALSE)
+            return FALSE;
+    }
+    for (int i = 0; i < board->rows; i++) {
+        for(int j = 0; j < board->cols; j++) {
+            if (check_sub_board(board, i, j, 0) == FALSE)
+                return FALSE;
         }
     }
 

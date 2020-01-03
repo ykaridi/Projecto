@@ -3,7 +3,11 @@
 
 #include "sudoku_game.h"
 
-void generate_board(sudoku_board_t *board);
-void solve_board(const sudoku_board_t *board, sudoku_board_t *solution);
+int deterministic_solution_inner(sudoku_board_t *board, int i, int j);
+int randomized_solution_inner(sudoku_board_t *board, int i, int j);
+int deterministic_solution(sudoku_board_t *board);
+int randomized_solution(sudoku_board_t *board);
+
+void randomize_board(sudoku_board_t *board, int num_cells);
 
 #endif

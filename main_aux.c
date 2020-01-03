@@ -44,4 +44,5 @@ void print_board(const sudoku_board_t *board) {
         }
     }
     print_repeated("-", total_len);
+    printf("\n");
 }
