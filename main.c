@@ -75,8 +75,10 @@ int main(int argc, char *argv[]) {
             } while (parse_command(command_line, &commands, &command, &command_arguments) != SUCCESS);
             command_output = command.function(&game, command_arguments);
         } while (command_output.exit_code == DONE);
+
+        destruct_game(&game);
     }
 
-    exit_gracefully(&game);
+    printf("Exiting...\n");
     return 0;
 }

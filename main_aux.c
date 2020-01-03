@@ -49,16 +49,17 @@ void print_board(const sudoku_board_t *board) {
             for (sub_board_j = 0; sub_board_j < board->cols; sub_board_j++) {
                 printf("| ");
                 for (inner_j = 0; inner_j < board->cols; inner_j++) {
-                    /* TODO: Note for project, reverse order of metadata & value */
-                    printf("%c", get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j));
-
                     cell_value = get_cell(board, sub_board_i, sub_board_j, inner_i, inner_j);
+
+                    /* TODO: Switch in final project */
+                    printf("%c", get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j));
                     if (cell_value == 0)
                         printf("%*s", n_len, "");
                     else {
                         int value_length = num_length(cell_value, 10);
                         printf("%*s%d", n_len - value_length, "", cell_value);
                     }
+
                     printf(" ");
                 }
             }

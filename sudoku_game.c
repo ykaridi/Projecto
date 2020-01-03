@@ -389,7 +389,8 @@ int check_board(const sudoku_board_t *board) {
 }
 
 
-/** Checks if we can add value to board[i][j]
+/**
+ * Checks if we can add value to board[i][j]
  * @param board
  * @param i
  * @param j
@@ -401,7 +402,8 @@ int check_value(const sudoku_board_t *board, int value, int i, int j) {
            check_sub_board(board, SUB_BOARD_CONVERSION, value);
 }
 
-/** return True if there are no free spaces in the board.
+/**
+ * return True if there are no free spaces in the board.
  * @param board
  * @return
  */
