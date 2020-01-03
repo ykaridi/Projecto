@@ -390,3 +390,19 @@ int check_value(const sudoku_board_t *board, int value, int i, int j) {
            check_column(board, j, value) &&
            check_sub_board(board, SUB_BOARD_CONVERSION, value);
 }
+
+/** return True if there are no free spaces in the board.
+ * @param board
+ * @return
+ */
+int is_board_full(const sudoku_board_t *board) {
+    int i, j;
+    for (i = 0; i < board->total_rows; ++i) {
+        for (j = 0; j < board->total_cols; ++j) {
+            if (get_cell_flattened(board, i, j) == 0) {
+                return FALSE;
+            }
+        }
+    }
+    return TRUE;
+}

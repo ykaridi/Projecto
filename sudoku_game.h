@@ -77,4 +77,6 @@ int check_board(const sudoku_board_t *board);
 
 int check_value(const sudoku_board_t *board, int value, int i, int j);
 
+int is_board_full(const sudoku_board_t *board);
+
 #endif

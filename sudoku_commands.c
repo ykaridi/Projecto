@@ -13,7 +13,7 @@
  */
 command_output_t set(sudoku_board_t *board, command_args_t args) {
     int j, i, z;
-    if (args.num_args < 3) {
+    if (args.num_args < 3 || is_board_full(board)) {
         printf("Error: invalid command\n");
         return (command_output_t) {DONE};
     }
@@ -31,7 +31,7 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
         /* Clear cell */
         set_cell_flattened(board, z, i, j);
     } else {
-        if (check_value(board, z, i, j)) {
+        if (!check_value(board, z, i, j)) {
             printf("Error: value is invalid\n");
             return (command_output_t) {DONE};
         }
@@ -39,16 +39,32 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
     }
 
     print_board(board);
+
+    if (is_board_full(board)) {
+        printf("Puzzle solved successfully\n");
+    }
+
     return (command_output_t) {DONE};
 }
 
 /*TODO*/
 command_output_t hint(sudoku_board_t *board, command_args_t args) {
+    if (args.num_args < 2 || is_board_full(board)) {
+        printf("Error: invalid command\n");
+        return (command_output_t) {DONE};
+    }
+
+
     return (command_output_t) {DONE};
 }
 
 /*TODO*/
 command_output_t validate(sudoku_board_t *board, command_args_t args) {
+    if (is_board_full(board)) {
+        printf("Error: invalid command\n");
+        return (command_output_t) {DONE};
+    }
+
     return (command_output_t) {DONE};
 }
 

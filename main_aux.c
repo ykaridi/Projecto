@@ -51,3 +51,12 @@ void print_board(const sudoku_board_t *board) {
     print_repeated("-", total_len);
     printf("\n");
 }
+
+/** Initialize the fixed cells.
+ *
+ * @return number of fixed cells, or ERROR if there was an error.
+ */
+int get_fixed_cells() {
+    printf("Please enter the number of cells to fill [0-%d]:\n", FIXED_CELLS_NUM);
+    return 0;
+}
