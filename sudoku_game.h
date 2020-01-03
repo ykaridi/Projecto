@@ -1,6 +1,8 @@
 #ifndef SUDOKU_GAME_H
 #define SUDOKU_GAME_H
 
+#include "utils.h"
+
 #define TRUE (1)
 #define FALSE (0)
 #define ERROR (-1)
@@ -45,6 +47,7 @@ typedef struct _sudoku_game_t {
 sudoku_game_t create_game(int rows, int cols);
 sudoku_board_t* create_board(int rows, int cols);
 void destruct_board(sudoku_board_t *board);
+void destruct_game(sudoku_game_t *game);
 void clear_board_temps(sudoku_board_t *board);
 void force_clear_board(sudoku_board_t *board);
 void copy_board(sudoku_board_t *board_in, sudoku_board_t *board_out);

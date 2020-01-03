@@ -1,5 +1,7 @@
 #include "main_aux.h"
+#include "utils.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int num_length(int x, int base) {
     int result = 0;
@@ -52,11 +54,24 @@ void print_board(const sudoku_board_t *board) {
     printf("\n");
 }
 
-/** Initialize the fixed cells.
- *
+/**
+ * Initialize the fixed cells.
  * @return number of fixed cells, or ERROR if there was an error.
  */
-int get_fixed_cells() {
-    printf("Please enter the number of cells to fill [0-%d]:\n", FIXED_CELLS_NUM);
-    return 0;
+int get_num_fixed_cells(sudoku_game_t *game) {
+    int num_fixed = -1;
+    printf("Please enter the number of cells to fill [0-%d]:\n", game->total_rows * game->total_cols - 1);
+
+    while (num_fixed < 0) {
+        if (scanf("%d", &num_fixed) < 0) {
+            EXIT_ON_ERROR("scanf");
+        }
+
+        if (num_fixed < 0 || num_fixed > game->total_rows * game->total_cols - 1) {
+            printf("\"Error: invalid number of cells to fill (should be between 0 and %d)\n", game->total_rows * game->total_cols - 1);
+            num_fixed = -1;
+        }
+    }
+
+    return num_fixed;
 }

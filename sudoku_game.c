@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define EXIT_ON_ERROR(code) \
-    fprintf(stderr, "Error: %s has failed\n", code); \
-    exit(1);
-
 /**
  * Dynamically allocates a sudoku game object
  * @param rows Number of rows
@@ -70,6 +66,17 @@ sudoku_board_t *create_board(int rows, int cols) {
 void destruct_board(sudoku_board_t *board) {
     free(board->board);
     free(board->cell_metadata);
+}
+
+/**
+ * Destructs (frees) a sudoku game object
+ * @param game Sudoku game object
+ */
+void destruct_game(sudoku_game_t *game) {
+    destruct_board(game->board);
+    destruct_board(game->solved_board);
+    free(game->board);
+    free(game->solved_board);
 }
 
 /**
