@@ -22,8 +22,8 @@ command_output_t set(sudoku_game_t *game, command_args_t args) {
     }
 
     j = args.args[0] - 1;
-    i = args.args[0] - 1;
-    z = args.args[0];
+    i = args.args[1] - 1;
+    z = args.args[2];
 
     if (get_cell_metadata_flattened(board, i, j) == FIXED_METADATA) {
         printf("Error: cell is fixed\n");
@@ -65,8 +65,8 @@ command_output_t hint(sudoku_game_t *game, command_args_t args) {
         return (command_output_t) {DONE};
     }
 
-    j = args.args[0];
-    i = args.args[1];
+    j = args.args[0] - 1;
+    i = args.args[1] - 1;
     value = reveal_cell(game, i, j);
 
     printf("Hint: set cell to %d\n", value);

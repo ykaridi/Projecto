@@ -18,7 +18,6 @@ int parse_command(char *text, command_t *command, command_args_t *args) {
 
     token = strtok(NULL, DELIM);
     while ((token != NULL) && (num_args < MAX_ARGS)) {
-        printf("%s\n", token);
         /* TODO: change from atoi */
         (args->args)[num_args] = atoi(token);
         num_args++;
