@@ -4,6 +4,7 @@
 #include "sudoku_solver.h"
 #include "utils.h"
 #include "parser.h"
+#include "sudoku_commands.h"
 
 /* IMPORTANT NOTICE: WHEN CHANGING THESE VALUES SHOULD CHANGE ALSO NUM_VALUES IN SUDOKU_SOLVER */
 #define ROWS (3)
@@ -24,9 +25,30 @@ int main(int argc, char *argv[]) {
     command_t command;
     command_args_t command_arguments;
     command_output_t command_output = {DONE};
+    command_list_t commands;
+    command_t _commands[] = {
+            {
+                    set, "set"
+            },
+            {
+                    hint, "hint"
+            },
+            {
+                    validate, "validate"
+            },
+            {
+                    restart, "restart"
+            },
+            {
+                    exit_sudoku, "exit"
+            }
+    };
+
+    commands.num_commands = sizeof(_commands) / sizeof(command_t);
+    commands.commands = _commands;
 
     if (argc < 2) {
-        printf("Syntax: %s <seed>", argv[0]);
+        printf("Syntax: %s <seed>\n", argv[0]);
         exit(1);
     }
     srand((unsigned) atoi(argv[1]));
@@ -40,11 +62,17 @@ int main(int argc, char *argv[]) {
         reveal_cells(&game, num_fixed_cells);
         print_board(game.board);
 
+        if (IS_EOF)
+            exit_gracefully(&game);
         getchar();
         do {
             do {
+                if (IS_EOF)
+                    exit_gracefully(&game);
                 fgets(command_line, MAX_COMMAND_LINE_LEN, stdin);
-            } while (parse_command(command_line, &command, &command_arguments) != SUCCESS);
+                if (IS_EOF)
+                    exit_gracefully(&game);
+            } while (parse_command(command_line, &commands, &command, &command_arguments) != SUCCESS);
             command_output = command.function(&game, command_arguments);
         } while (command_output.exit_code == DONE);
     }

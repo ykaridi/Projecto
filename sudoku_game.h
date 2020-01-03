@@ -41,6 +41,7 @@ typedef struct _sudoku_game_t {
     int sub_board_size;
 
     sudoku_board_t *board;
+    sudoku_board_t *temporary_board;
     sudoku_board_t *solved_board;
 } sudoku_game_t;
 

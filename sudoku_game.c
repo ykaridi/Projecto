@@ -19,6 +19,7 @@ sudoku_game_t create_game(int rows, int cols) {
     game.sub_board_size = rows * cols;
 
     game.board = create_board(rows, cols);
+    game.temporary_board = create_board(rows, cols);
     game.solved_board = create_board(rows, cols);
 
     return game;
@@ -74,8 +75,10 @@ void destruct_board(sudoku_board_t *board) {
  */
 void destruct_game(sudoku_game_t *game) {
     destruct_board(game->board);
+    destruct_board(game->temporary_board);
     destruct_board(game->solved_board);
     free(game->board);
+    free(game->temporary_board);
     free(game->solved_board);
 }
 

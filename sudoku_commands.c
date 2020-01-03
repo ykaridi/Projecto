@@ -14,11 +14,12 @@
  */
 command_output_t set(sudoku_game_t *game, command_args_t args) {
     int j, i, z;
+    command_output_t output = { DONE };
     sudoku_board_t *board = game->board;
 
     if (args.num_args < 3 || is_board_full(board)) {
         printf("Error: invalid command\n");
-        return (command_output_t) {DONE};
+        return output;
     }
 
     j = args.args[0] - 1;
@@ -27,7 +28,7 @@ command_output_t set(sudoku_game_t *game, command_args_t args) {
 
     if (get_cell_metadata_flattened(board, i, j) == FIXED_METADATA) {
         printf("Error: cell is fixed\n");
-        return (command_output_t) {DONE};
+        return output;
     }
 
     if (z == 0) {
@@ -36,7 +37,7 @@ command_output_t set(sudoku_game_t *game, command_args_t args) {
     } else {
         if (!check_value(board, z, i, j)) {
             printf("Error: value is invalid\n");
-            return (command_output_t) {DONE};
+            return output;
         }
         set_cell_flattened(board, z, i, j);
     }
@@ -47,7 +48,7 @@ command_output_t set(sudoku_game_t *game, command_args_t args) {
         printf("Puzzle solved successfully\n");
     }
 
-    return (command_output_t) {DONE};
+    return output;
 }
 
 /**
@@ -58,20 +59,21 @@ command_output_t set(sudoku_game_t *game, command_args_t args) {
  */
 command_output_t hint(sudoku_game_t *game, command_args_t args) {
     int i, j, value;
+    command_output_t output = { DONE };
     sudoku_board_t *board = game->board;
 
     if (args.num_args < 2 || is_board_full(board)) {
         printf("Error: invalid command\n");
-        return (command_output_t) {DONE};
+        return output;
     }
 
     j = args.args[0] - 1;
     i = args.args[1] - 1;
-    value = reveal_cell(game, i, j);
+    value = get_cell_flattened(game->solved_board, i, j);
 
     printf("Hint: set cell to %d\n", value);
 
-    return (command_output_t) {DONE};
+    return output;
 }
 
 /**
@@ -82,19 +84,20 @@ command_output_t hint(sudoku_game_t *game, command_args_t args) {
  */
 command_output_t validate(sudoku_game_t *game, __attribute__ ((unused)) command_args_t args) {
     sudoku_board_t *board = game->board;
+    command_output_t output = { DONE };
 
     if (is_board_full(board)) {
         printf("Error: invalid command\n");
-        return (command_output_t) {DONE};
+        return output;
     }
 
-    if (update_solution(game, TRUE)) {
+    if (update_solution(game, TRUE) == FALSE) {
         printf("Validation failed: board is unsolvable\n");
     } else {
         printf("Validation passed: board is solvable\n");
     }
 
-    return (command_output_t) {DONE};
+    return output;
 }
 
 /**
@@ -104,7 +107,8 @@ command_output_t validate(sudoku_game_t *game, __attribute__ ((unused)) command_
  * @return
  */
 command_output_t restart(__attribute__ ((unused)) sudoku_game_t *game, __attribute__ ((unused)) command_args_t args) {
-    return (command_output_t) {RESTART_GAME};
+    command_output_t output = { RESTART_GAME };
+    return output;
 }
 
 /**
@@ -117,29 +121,6 @@ command_output_t
 exit_sudoku(__attribute__ ((unused)) sudoku_game_t *board, __attribute__ ((unused)) command_args_t args) {
 
     /* Just send the exit program signal */
-    return (command_output_t) {EXIT_PROGRAM};
+    command_output_t output = { EXIT_PROGRAM };
+    return output;
 }
-
-
-command_t commands[] = {
-        {
-                .function =     set,
-                .command_name = "set"
-        },
-        {
-                .function =     hint,
-                .command_name = "hint"
-        },
-        {
-                .function =     validate,
-                .command_name = "validate"
-        },
-        {
-                .function =     restart,
-                .command_name = "restart"
-        },
-        {
-                .function =     exit_sudoku,
-                .command_name = "exit"
-        }
-};

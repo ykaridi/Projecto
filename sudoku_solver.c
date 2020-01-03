@@ -16,7 +16,6 @@
 int solve_board_inner(sudoku_board_t *board, int i, int j, int deterministic) {
     int value, selection, num_valid_values, curr_selection = 0;
     int legal_map[MAX_NUMBER + 1];
-    char metadata;
 
     if (j >= board->total_cols) {
         i += j / board->total_cols;
@@ -26,8 +25,7 @@ int solve_board_inner(sudoku_board_t *board, int i, int j, int deterministic) {
         return TRUE;
     }
 
-    metadata = get_cell_metadata_flattened(board, i, j);
-    if (metadata == FIXED_METADATA)
+    if (get_cell_flattened(board, i, j) != EMPTY_CELL)
         return solve_board_inner(board, i, j + 1, deterministic);
 
     legal_map[0] = FALSE;
@@ -83,10 +81,18 @@ int solve_board(sudoku_board_t *board, int deterministic) {
  * @returns Boolean flag indicating if board is solvable (YES=TRUE, NO=FALSE)
  */
 int update_solution(sudoku_game_t *game, int deterministic) {
-    force_clear_board(game->solved_board);
-    copy_board(game->board, game->solved_board);
+    int result;
 
-    return solve_board(game->solved_board, deterministic);
+    force_clear_board(game->temporary_board);
+    copy_board(game->board, game->temporary_board);
+
+    result = solve_board(game->temporary_board, deterministic);
+    if (result == TRUE) {
+        force_clear_board(game->solved_board);
+        copy_board(game->temporary_board, game->solved_board);
+    }
+
+    return result;
 }
 
 /**
@@ -115,7 +121,8 @@ void reveal_cells(sudoku_game_t *game, int num_cells) {
  */
 int reveal_cell(sudoku_game_t *game, int i, int j) {
     if (get_cell_metadata_flattened(game->board, i, j) != FIXED_METADATA) {
-        set_cell_flattened(game->board, get_cell_flattened(game->solved_board, i, j), i, j);
+        int value = get_cell_flattened(game->solved_board, i, j);
+        set_cell_flattened(game->board, value, i, j);
         set_cell_metadata_flattened(game->board, FIXED_METADATA, i, j);
         return TRUE;
     }

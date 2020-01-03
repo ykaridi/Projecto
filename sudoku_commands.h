@@ -36,9 +36,18 @@ typedef struct _command {
     char *command_name;
 } command_t;
 
+command_output_t set(sudoku_game_t *game, command_args_t args);
+command_output_t hint(sudoku_game_t *game, command_args_t args);
+command_output_t validate(sudoku_game_t *game, command_args_t args);
+command_output_t restart(sudoku_game_t *game, command_args_t args);
+command_output_t exit_sudoku(sudoku_game_t *game, command_args_t args);
 
-#define NUM_COMMANDS 5
-
-command_t commands[NUM_COMMANDS];
+/**
+ * A command list
+ */
+typedef struct _command_list {
+    int num_commands;
+    command_t *commands;
+} command_list_t;
 
 #endif

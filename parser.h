@@ -7,6 +7,6 @@
 
 #define DELIM " \t\r\n"
 
-int parse_command(char *text, command_t *command, command_args_t *args);
+int parse_command(char *text, command_list_t *commands, command_t *command, command_args_t *args);
 
 #endif
