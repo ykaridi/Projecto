@@ -3,8 +3,6 @@
 #include "sudoku_solver.h"
 #include "sudoku_game.h"
 
-#define CHECK_VALUE (!check_row(board, i, value) || !check_column(board, j, value) ||\
-                    !check_sub_board(board, SUB_BOARD_CONVERSION, value))
 #define MAX_NUMBER (9)
 
 /**
@@ -31,7 +29,7 @@ int deterministic_solution_inner(sudoku_board_t *board, int i, int j) {
         return deterministic_solution_inner(board, i, j + 1);
 
     for (value = 1; value <= board->sub_board_size; value++) {
-        if (CHECK_VALUE)
+        if (check_value(board, value, i, j))
             continue;
 
         set_cell_flattened(board, value, i, j);
@@ -81,7 +79,7 @@ int randomized_solution_inner(sudoku_board_t *board, int i, int j) {
     legal_map[0] = FALSE;
     num_valid_values = 0;
     for(value = 1; value <= MAX_NUMBER; value++) {
-        if (CHECK_VALUE) {
+        if (check_value(board, value, i, j)) {
             legal_map[value] = FALSE;
         } else {
             num_valid_values++;

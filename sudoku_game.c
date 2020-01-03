@@ -81,6 +81,7 @@ int is_in_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, i
     return in_range(sub_board_i, 0, board->rows) && in_range(sub_board_j, 0, board->cols) &&
            in_range(inner_i, 0, board->rows) && in_range(inner_j, 0, board->cols);
 }
+
 /**
  * Checks if an index is valid
  * @param board Sudoku board object
@@ -106,6 +107,7 @@ int get_cell(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int 
         return ERROR;
     return board->board[ARR_CONVERSION];
 }
+
 /**
  * Returns a cell's value
  * @param board Sudoku board object
@@ -116,6 +118,7 @@ int get_cell(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int 
 int get_cell_flattened(const sudoku_board_t *board, int i, int j) {
     return get_cell(board, FLAT_CONVERSION);
 }
+
 /**
  * Sets a cell's value
  * @param board Sudoku board object
@@ -135,6 +138,7 @@ int set_cell(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j,
     board->board[ARR_CONVERSION] = value;
     return SUCCESS;
 }
+
 /**
  * Sets a cell's value
  * @param board Sudoku board object
@@ -162,6 +166,7 @@ char get_cell_metadata(const sudoku_board_t *board, int sub_board_i, int sub_boa
 
     return board->cell_metadata[ARR_CONVERSION];
 }
+
 /**
  * Returns a cell's metadata
  * @param board Sudoku board object
@@ -172,6 +177,7 @@ char get_cell_metadata(const sudoku_board_t *board, int sub_board_i, int sub_boa
 char get_cell_metadata_flattened(const sudoku_board_t *board, int i, int j) {
     return get_cell_metadata(board, FLAT_CONVERSION);
 }
+
 /**
  * Sets a cell's metadata
  * @param board Sudoku board object
@@ -182,7 +188,8 @@ char get_cell_metadata_flattened(const sudoku_board_t *board, int i, int j) {
  * @param inner_j
  * @return Success flag
  */
-int set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
+int
+set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
     if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
@@ -191,6 +198,7 @@ int set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int
     board->cell_metadata[ARR_CONVERSION] = metadata;
     return 0;
 }
+
 /**
  * Sets a cell's metadata
  * @param board Sudoku board object
@@ -231,6 +239,7 @@ int check_row(const sudoku_board_t *board, int row, int value) {
 
     return TRUE;
 }
+
 /**
  * Checks if column is currently legal, if value > 0 checks that it doesn't already exist in column
  * @param board Sudoku board object
@@ -259,6 +268,7 @@ int check_column(const sudoku_board_t *board, int col, int value) {
 
     return TRUE;
 }
+
 /**
  * Checks if sub board is currently legal, if value > 0 checks that it doesn't already exist in sub board
  * @param board Sudoku board object
@@ -294,6 +304,7 @@ int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_
 
     return TRUE;
 }
+
 /**
  * Checks if a board is solved correctly
  * @param board Sudoku board object
@@ -310,11 +321,24 @@ int check_board(const sudoku_board_t *board) {
             return FALSE;
     }
     for (i = 0; i < board->rows; i++) {
-        for(j = 0; j < board->cols; j++) {
+        for (j = 0; j < board->cols; j++) {
             if (check_sub_board(board, i, j, 0) == FALSE)
                 return FALSE;
         }
     }
 
     return TRUE;
+}
+
+
+/** Checks if we can add value to board[i][j]
+ * @param board
+ * @param i
+ * @param j
+ * @return
+ */
+int check_value(const sudoku_board_t *board, int value, int i, int j) {
+    return !check_row(board, i, value) ||
+           !check_column(board, j, value) ||
+           !check_sub_board(board, SUB_BOARD_CONVERSION, value);
 }

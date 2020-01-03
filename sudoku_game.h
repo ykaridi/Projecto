@@ -62,4 +62,6 @@ int check_column(const sudoku_board_t *board, int col, int value);
 int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int value);
 int check_board(const sudoku_board_t *board);
 
+int check_value(const sudoku_board_t *board, int value, int i, int j);
+
 #endif

@@ -15,7 +15,7 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
     int j, i, z;
     if (args.num_args < 3) {
         printf("Error: invalid command\n");
-        return (command_output_t) {SUCCESS};
+        return (command_output_t) {DONE};
     }
 
     j = args.args[0] - 1;
@@ -24,7 +24,7 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
 
     if (get_cell_metadata_flattened(board, i, j) == FIXED_METADATA) {
         printf("Error: cell is fixed\n");
-        return (command_output_t) {SUCCESS};
+        return (command_output_t) {DONE};
     }
 
     if (z == 0) {
@@ -33,33 +33,42 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
     } else {
         if (!check_row(board, i, z) || !check_column(board, j, z) || !check_sub_board(board, SUB_BOARD_CONVERSION, z)) {
             printf("Error: value is invalid\n");
-            return (command_output_t) {SUCCESS};
+            return (command_output_t) {DONE};
         }
         set_cell_flattened(board, z, i, j);
     }
 
     print_board(board);
-    return (command_output_t) {SUCCESS};
+    return (command_output_t) {DONE};
 }
 
 /*TODO*/
 command_output_t hint(sudoku_board_t *board, command_args_t args) {
-    return (command_output_t) {SUCCESS};
+    return (command_output_t) {DONE};
 }
 
 /*TODO*/
 command_output_t validate(sudoku_board_t *board, command_args_t args) {
-    return (command_output_t) {SUCCESS};
+    return (command_output_t) {DONE};
 }
 
-/*TODO*/
+/** restart the game.
+ * @param board
+ * @param args
+ * @return
+ */
 command_output_t restart(sudoku_board_t *board, command_args_t args) {
-    return (command_output_t) {SUCCESS};
+    return (command_output_t) {RESTART_GAME};
 }
 
-/*TODO*/
+/** exit the program.
+ * @param board
+ * @param args
+ * @return
+ */
 command_output_t exit_sudoku(sudoku_board_t *board, command_args_t args) {
-    return (command_output_t) {SUCCESS};
+    /* Just send the exit program signal */
+    return (command_output_t) {EXIT_PROGRAM};
 }
 
 

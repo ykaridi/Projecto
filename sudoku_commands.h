@@ -5,7 +5,11 @@
 
 #include "sudoku_game.h"
 
-#define MAX_ARGS 3
+#define MAX_ARGS (3)
+
+#define DONE            (0)
+#define RESTART_GAME   (1)
+#define EXIT_PROGRAM    (2)
 
 /**
  * The command parsed by the parser.
@@ -20,7 +24,7 @@ typedef struct _command_args {
  * The output of a command.
  */
 typedef struct _command_output {
-    int success;
+    int exit_code;
 } command_output_t;
 
 /**
