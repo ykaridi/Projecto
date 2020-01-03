@@ -43,7 +43,7 @@ typedef struct _sudoku_game_t {
 } sudoku_game_t;
 
 sudoku_game_t create_game(int rows, int cols);
-sudoku_board_t create_board(int rows, int cols);
+sudoku_board_t* create_board(int rows, int cols);
 void destruct_board(sudoku_board_t *board);
 void clear_board_temps(sudoku_board_t *board);
 void force_clear_board(sudoku_board_t *board);

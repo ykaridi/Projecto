@@ -8,7 +8,7 @@
 #define COLS (3)
 
 int main(int argc, char* argv[]) {
-    sudoku_board_t board;
+    sudoku_game_t game;
 
     if (argc < 2) {
         printf("Syntax: %s <seed>", argv[0]);
@@ -16,16 +16,17 @@ int main(int argc, char* argv[]) {
     }
     srand((unsigned) atoi(argv[1]));
 
-    board = create_board(ROWS, COLS);
-    randomize_board(&board, 8);
+    game = create_game(ROWS, COLS);
+    update_solution(&game, FALSE);
+    reveal_cells(&game, 8);
 
-    print_board(&board);
-    if (check_board(&board) == TRUE) {
+    print_board(game.board);
+    if (check_board(game.board) == TRUE) {
         printf("Yay! Valid board!\n");
     } else {
         printf("Boo! Invalid board!\n");
     }
 
-    destruct_board(&board);
+    destruct_board(game.board);
     return 0;
 }
