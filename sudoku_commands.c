@@ -91,7 +91,7 @@ command_output_t validate(sudoku_game_t *game, __attribute__ ((unused)) command_
     if (update_solution(game, TRUE)) {
         printf("Validation failed: board is unsolvable\n");
     } else {
-        printf("Validation passed: board is solvable\n")
+        printf("Validation passed: board is solvable\n");
     }
 
     return (command_output_t) {DONE};
