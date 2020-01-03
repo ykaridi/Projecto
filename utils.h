@@ -5,6 +5,8 @@
     fprintf(stderr, "Error: %s has failed\n", code); \
     exit(1);
 
+#define IS_EOF (!ferror(stdin) && !ferror(stdout) && feof(stdin))
+
 int in_range(int x, int a, int b);
 
 #endif

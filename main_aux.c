@@ -64,6 +64,8 @@ int get_num_fixed_cells(sudoku_game_t *game) {
 
     while (num_fixed < 0) {
         if (scanf("%d", &num_fixed) < 0) {
+            if (IS_EOF)
+                return ERROR;
             EXIT_ON_ERROR("scanf");
         }
 
