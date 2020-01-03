@@ -7,6 +7,9 @@
 #define SUCCESS (0)
 
 #define SUB_BOARD_CONVERSION i / board->cols, j / board->rows
+#define FLAT_CONVERSION i / board->cols, j / board->rows, i % board->cols, j % board->rows
+#define ARR_CONVERSION (sub_board_i * board->cols + sub_board_j) * board->sub_board_size +\
+                        (inner_i * board->cols + inner_j)
 
 #define EMPTY_CELL (0)
 
@@ -18,7 +21,7 @@
 #define NULL (0)
 #endif
 
-struct _sudoku_board_t {
+typedef struct _sudoku_board_t {
     int rows;
     int cols;
     int total_rows;
@@ -27,7 +30,7 @@ struct _sudoku_board_t {
 
     int* board;
     char* cell_metadata;
-} typedef sudoku_board_t;
+} sudoku_board_t;
 
 sudoku_board_t* create_board(int rows, int cols);
 void destruct_board(sudoku_board_t *board);
