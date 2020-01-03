@@ -31,7 +31,7 @@ command_output_t set(sudoku_board_t *board, command_args_t args) {
         /* Clear cell */
         set_cell_flattened(board, z, i, j);
     } else {
-        if (!check_row(board, i, z) || !check_column(board, j, z) || !check_sub_board(board, SUB_BOARD_CONVERSION, z)) {
+        if (check_value(board, z, i, j)) {
             printf("Error: value is invalid\n");
             return (command_output_t) {DONE};
         }

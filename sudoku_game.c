@@ -338,7 +338,7 @@ int check_board(const sudoku_board_t *board) {
  * @return
  */
 int check_value(const sudoku_board_t *board, int value, int i, int j) {
-    return !check_row(board, i, value) ||
-           !check_column(board, j, value) ||
-           !check_sub_board(board, SUB_BOARD_CONVERSION, value);
+    return check_row(board, i, value) &&
+           check_column(board, j, value) &&
+           check_sub_board(board, SUB_BOARD_CONVERSION, value);
 }
