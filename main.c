@@ -1,25 +1,19 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include "parser.h"
 #include "main_aux.h"
-#include "sudoku_solver.h"
 
-#define ROWS (3)
+#define ROWS (5)
 #define COLS (3)
 
-int main(int argc, char* argv[]) {
-    srand((unsigned) atoi(argv[1]));
+#include <string.h>
 
-    sudoku_board_t *board = create_board(ROWS, COLS);
+int main() {
+    command_t command;
+    command_args_t args;
 
-    randomize_board(board, 8);
-    //deterministic_backtracking(board, 0, 0);
+    char text[] = "ex";
 
-    print_board(board);
-    if (check_board(board) == TRUE) {
-        printf("Yay! Valid board!\n");
-    } else {
-        printf("Boo! Invalid board!\n");
-    }
-
-    destruct_board(board);
+    parse_command(text, &command, &args);
+    printf("command: %s\n", command.command_name);
+    printf("args: %d %d %d %d\n", args.num_args, args.args[0], args.args[1], args.args[2]);
 }

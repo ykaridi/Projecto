@@ -14,6 +14,10 @@
 #define TEMPORARY_METADATA ('T')
 #define EMPTY_METADATA (' ')
 
+#ifndef NULL
+#define NULL (0)
+#endif
+
 struct _sudoku_board_t {
     int rows;
     int cols;
