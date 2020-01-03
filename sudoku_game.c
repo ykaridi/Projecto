@@ -5,7 +5,33 @@
 
 #define EXIT_ON_ERROR(code) \
     fprintf(stderr, "Error: %s has failed\n", code); \
-    exit(0);
+    exit(1);
+
+/**
+ * Dynamically allocates a sudoku game object
+ * @param rows Number of rows
+ * @param cols Number of columns
+ * @return Sudoku game object
+ */
+sudoku_game_t create_game(int rows, int cols) {
+    sudoku_game_t game;
+    sudoku_board_t board;
+    sudoku_board_t solved_board;
+
+    game.rows = rows;
+    game.cols = cols;
+    game.total_rows = rows * rows;
+    game.total_cols = cols * cols;
+    game.sub_board_size = rows * cols;
+
+    board = create_board(rows, cols);
+    solved_board = create_board(rows, cols);
+
+    game.board = &board;
+    game.solved_board = &solved_board;
+
+    return game;
+}
 
 /**
  * Dynamically allocates a sudoku board object
@@ -13,29 +39,25 @@
  * @param cols Number of columns
  * @return Sudoku board object
  */
-sudoku_board_t *create_board(int rows, int cols) {
+sudoku_board_t create_board(int rows, int cols) {
     int i;
+    sudoku_board_t board;
 
-    sudoku_board_t *board = malloc(sizeof(sudoku_board_t));
-    if (board == NULL) {
-        EXIT_ON_ERROR("malloc");
-    }
+    board.rows = rows;
+    board.cols = cols;
+    board.total_rows = rows * rows;
+    board.total_cols = cols * cols;
+    board.sub_board_size = rows * cols;
 
-    board->rows = rows;
-    board->cols = cols;
-    board->total_rows = rows * rows;
-    board->total_cols = cols * cols;
-    board->sub_board_size = rows * cols;
-
-    board->board = malloc(sizeof(int) * rows * rows * cols * cols);
-    board->cell_metadata = malloc(sizeof(char) * rows * rows * cols * cols);
-    if (board->board == NULL || board->cell_metadata == NULL) {
+    board.board = malloc(sizeof(int) * rows * rows * cols * cols);
+    board.cell_metadata = malloc(sizeof(char) * rows * rows * cols * cols);
+    if (board.board == NULL || board.cell_metadata == NULL) {
         EXIT_ON_ERROR("malloc");
     }
 
     for (i = 0; i < rows * rows * cols * cols; i++) {
-        board->board[i] = EMPTY_CELL;
-        board->cell_metadata[i] = EMPTY_METADATA;
+        board.board[i] = EMPTY_CELL;
+        board.cell_metadata[i] = EMPTY_METADATA;
     }
 
     return board;
@@ -48,7 +70,6 @@ sudoku_board_t *create_board(int rows, int cols) {
 void destruct_board(sudoku_board_t *board) {
     free(board->board);
     free(board->cell_metadata);
-    free(board);
 }
 
 /**
@@ -64,6 +85,33 @@ void clear_board_temps(sudoku_board_t *board) {
                 set_cell_flattened(board, EMPTY_CELL, i, j);
                 set_cell_metadata_flattened(board, EMPTY_METADATA, i, j);
             }
+        }
+    }
+}
+
+/**
+ * Clears all board, including metadata
+ * @param board Sudoku board object
+ */
+void force_clear_board(sudoku_board_t *board) {
+    int i = 0;
+    for (i = 0; i < board->total_rows * board->total_cols; i++) {
+        board->board[i] = EMPTY_CELL;
+        board->cell_metadata[i] = EMPTY_METADATA;
+    }
+}
+
+/**
+ * Copies a board (Assuming both boards are of same size!)
+ * @param board_in
+ * @param board_out
+ */
+void copy_board(sudoku_board_t *board_in, sudoku_board_t *board_out) {
+    int i, j = 0;
+    for (i = 0; i < board_in->total_rows; i++) {
+        for(j = 0; j < board_in->total_cols; j++) {
+            set_cell_flattened(board_out, get_cell_flattened(board_in, i, j), i, j);
+            set_cell_metadata_flattened(board_out, get_cell_metadata_flattened(board_in, i, j), i, j);
         }
     }
 }

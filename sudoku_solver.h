@@ -3,11 +3,11 @@
 
 #include "sudoku_game.h"
 
-int deterministic_solution_inner(sudoku_board_t *board, int i, int j);
-int randomized_solution_inner(sudoku_board_t *board, int i, int j);
-int deterministic_solution(sudoku_board_t *board);
-int randomized_solution(sudoku_board_t *board);
+int solve_board_inner(sudoku_board_t *board, int i, int j, int deterministic);
+int solve_board(sudoku_board_t *board, int deterministic);
 
-void randomize_board(sudoku_board_t *board, int num_cells);
+int update_solution(sudoku_game_t *game, int deterministic);
+void reveal_cells(sudoku_game_t *game, int num_cells);
+int reveal_cell(sudoku_game_t *game, int i, int j);
 
 #endif
