@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "sudoku_game.h"
+#include "sudoku_solver.h"
 
 #define MAX_ARGS (3)
 
@@ -31,7 +32,7 @@ typedef struct _command_output {
  *  A command has a pointer to the function and a name of the function.
  */
 typedef struct _command {
-    command_output_t (*function)(sudoku_board_t *, command_args_t);
+    command_output_t (*function)(sudoku_game_t *, command_args_t);
     char *command_name;
 } command_t;
 
