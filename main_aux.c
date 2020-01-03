@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * Returns length of number in some base
+ * @param x Number
+ * @param base Base
+ * @return
+ */
 int num_length(int x, int base) {
     int result = 0;
 
@@ -14,6 +20,11 @@ int num_length(int x, int base) {
     return result;
 }
 
+/**
+ * Prints a certain string for several times
+ * @param s
+ * @param times
+ */
 void print_repeated(char* s, int times) {
     int i;
 
@@ -22,6 +33,10 @@ void print_repeated(char* s, int times) {
     }
 }
 
+/**
+ * Prints a sudoku board
+ * @param board
+ */
 void print_board(const sudoku_board_t *board) {
     int sub_board_i, inner_i, sub_board_j, inner_j, cell_value = 0;
     int n_len = num_length(board->sub_board_size, 10);
