@@ -56,8 +56,8 @@ int main(int argc, char *argv[]) {
     while (command_output.exit_code != EXIT_PROGRAM) {
         game = create_game(ROWS, COLS);
         num_fixed_cells = get_num_fixed_cells(&game);
-        if (num_fixed_cells < 0)
-            exit_gracefully(&game);
+        if (num_fixed_cells < 0 || num_fixed_cells > 80)
+            exit_gracefully(&game);;
         update_solution(&game, FALSE);
         reveal_cells(&game, num_fixed_cells);
         print_board(game.board);

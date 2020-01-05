@@ -76,9 +76,9 @@ void print_board(const sudoku_board_t *board) {
  */
 int get_num_fixed_cells(sudoku_game_t *game) {
     int num_fixed = -1;
-    printf("Please enter the number of cells to fill [0-%d]:\n", game->total_rows * game->total_cols - 1);
 
     while (num_fixed < 0) {
+        printf("Please enter the number of cells to fill [0-%d]:\n", game->total_rows * game->total_cols - 1);
         if (scanf("%d", &num_fixed) < 0) {
             if (IS_EOF)
                 return ERROR;
@@ -86,7 +86,7 @@ int get_num_fixed_cells(sudoku_game_t *game) {
         }
 
         if (num_fixed < 0 || num_fixed > game->total_rows * game->total_cols - 1) {
-            printf("\"Error: invalid number of cells to fill (should be between 0 and %d)\n", game->total_rows * game->total_cols - 1);
+            printf("Error: invalid number of cells to fill (should be between 0 and %d)\n", game->total_rows * game->total_cols - 1);
             num_fixed = -1;
         }
     }
