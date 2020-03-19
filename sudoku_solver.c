@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sudoku_solver.h"
-#include "sudoku_game.h"
+#include "sudoku_board.h"
 
 #define MAX_NUMBER (9)
 

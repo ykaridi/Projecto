@@ -1,29 +1,7 @@
-#include "sudoku_game.h"
+#include "sudoku_board.h"
 #include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-/**
- * Dynamically allocates a sudoku game object
- * @param rows Number of rows
- * @param cols Number of columns
- * @return Sudoku game object
- */
-sudoku_game_t create_game(int rows, int cols) {
-    sudoku_game_t game;
-
-    game.rows = rows;
-    game.cols = cols;
-    game.total_rows = rows * rows;
-    game.total_cols = cols * cols;
-    game.sub_board_size = rows * cols;
-
-    game.board = create_board(rows, cols);
-    game.temporary_board = create_board(rows, cols);
-    game.solved_board = create_board(rows, cols);
-
-    return game;
-}
 
 /**
  * Dynamically allocates a sudoku board object
@@ -67,19 +45,6 @@ sudoku_board_t *create_board(int rows, int cols) {
 void destruct_board(sudoku_board_t *board) {
     free(board->board);
     free(board->cell_metadata);
-}
-
-/**
- * Destructs (frees) a sudoku game object
- * @param game Sudoku game object
- */
-void destruct_game(sudoku_game_t *game) {
-    destruct_board(game->board);
-    destruct_board(game->temporary_board);
-    destruct_board(game->solved_board);
-    free(game->board);
-    free(game->temporary_board);
-    free(game->solved_board);
 }
 
 /**

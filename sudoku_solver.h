@@ -1,7 +1,7 @@
 #ifndef SUDOKU_SOLVER_H
 #define SUDOKU_SOLVER_H
 
-#include "sudoku_game.h"
+#include "sudoku_board.h"
 
 int solve_board_inner(sudoku_board_t *board, int i, int j, int deterministic);
 int solve_board(sudoku_board_t *board, int deterministic);

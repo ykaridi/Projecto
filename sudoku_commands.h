@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "sudoku_game.h"
+#include "sudoku_board.h"
 #include "sudoku_solver.h"
 
 #define MAX_ARGS (3)
