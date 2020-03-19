@@ -1,5 +1,5 @@
 #include "sudoku_board.h"
-#include "utils.h"
+#include "../utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -23,6 +23,7 @@ sudoku_board_t *create_board(int rows, int cols) {
     board->total_rows = rows * rows;
     board->total_cols = cols * cols;
     board->sub_board_size = rows * cols;
+    board->total_size = board->total_rows * board->total_cols;
 
     board->board = malloc(sizeof(int) * rows * rows * cols * cols);
     board->cell_metadata = malloc(sizeof(char) * rows * rows * cols * cols);
@@ -30,7 +31,7 @@ sudoku_board_t *create_board(int rows, int cols) {
         EXIT_ON_ERROR("malloc");
     }
 
-    for (i = 0; i < rows * rows * cols * cols; i++) {
+    for (i = 0; i < board->total_size; i++) {
         board->board[i] = EMPTY_CELL;
         board->cell_metadata[i] = EMPTY_METADATA;
     }

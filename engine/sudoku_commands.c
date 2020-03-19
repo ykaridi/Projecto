@@ -1,5 +1,5 @@
 #include "sudoku_commands.h"
-#include "main_aux.h"
+#include "../main_aux.h"
 
 /**
  *  In this documentation, args.args = {x, y, z}

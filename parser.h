@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "sudoku_commands.h"
+#include "engine/sudoku_commands.h"
 
 #define COMMAND_LEN (1024)
 

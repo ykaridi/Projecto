@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "main_aux.h"
-#include "sudoku_solver.h"
+#include "exhaustive_backtracking/sudoku_solver.h"
 #include "utils.h"
 #include "parser.h"
-#include "sudoku_commands.h"
+#include "engine/sudoku_commands.h"
 
 /* IMPORTANT NOTICE: WHEN CHANGING THESE VALUES SHOULD CHANGE ALSO NUM_VALUES IN SUDOKU_SOLVER */
 #define ROWS (3)

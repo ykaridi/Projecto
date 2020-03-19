@@ -1,12 +1,7 @@
 #ifndef SUDOKU_BOARD_H
 #define SUDOKU_BOARD_H
 
-#include "utils.h"
-
-#define TRUE (1)
-#define FALSE (0)
-#define ERROR (-1)
-#define SUCCESS (0)
+#include "../utils.h"
 
 #define SUB_BOARD_CONVERSION i / board->cols, j / board->rows
 #define FLAT_CONVERSION i / board->cols, j / board->rows, i % board->cols, j % board->rows
@@ -19,16 +14,13 @@
 #define TEMPORARY_METADATA ('T')
 #define EMPTY_METADATA (' ')
 
-#ifndef NULL
-#define NULL (0)
-#endif
-
 typedef struct _sudoku_board_t {
     int rows;
     int cols;
     int total_rows;
     int total_cols;
     int sub_board_size;
+    int total_size;
 
     int* board;
     char* cell_metadata;

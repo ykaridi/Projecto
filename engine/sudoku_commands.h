@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "sudoku_board.h"
-#include "sudoku_solver.h"
+#include "../exhaustive_backtracking/sudoku_solver.h"
 
 #define MAX_ARGS (3)
 
