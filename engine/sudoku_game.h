@@ -15,4 +15,4 @@ typedef struct _sudoku_game {
     sudoku_board_t *temporary_board;
 } sudoku_game_t;
 
-#endif //SUDOKU_GAME_H
+#endif

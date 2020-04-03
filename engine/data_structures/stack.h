@@ -18,4 +18,4 @@ int stack_peek(stack_t *stack);
 int stack_pop(stack_t *stack);
 void stack_push(stack_t *stack, int value);
 
-#endif //STACK_H
+#endif

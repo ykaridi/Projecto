@@ -13,4 +13,4 @@ void operation_list_delete(operation_node_t *node);
 void operation_list_clear_after(operation_node_t *node);
 void operation_list_append(operation_node_t *node, sudoku_game_operation_t *operation);
 
-#endif //OPERATION_LIST_H
+#endif

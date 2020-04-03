@@ -29,4 +29,4 @@ typedef struct _command_list {
 void load_commands(command_list_t *command_list);
 void update_arguments(command_list_t *command_list, const sudoku_game_t *game);
 
-#endif //PROJECTOHW3_SUDOKU_COMMANDS_H
+#endif

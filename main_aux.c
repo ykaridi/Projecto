@@ -39,7 +39,7 @@ void print_repeated(char* s, int times) {
  */
 void print_board(const sudoku_board_t *board) {
     int sub_board_i, inner_i, sub_board_j, inner_j, cell_value = 0;
-    //int n_len = num_length(board->sub_board_size, 10);
+    /* int n_len = num_length(board->sub_board_size, 10); */
     int n_len = 2;
     int total_len = (2 + (n_len + 2) * board->cols) * board->rows + 1;
 
@@ -92,9 +92,10 @@ void print_parsing_error(const parsing_errors_t *error, const command_t *command
         case INCORRECT_TYPE:
             printf("Command [%s] expects parameter [#%d] to be of type [",
                     command->command_name, error->param_index + 1);
-            /* TODO: Handle float */
             if (command->args.arguments[error->param_index]->argument_type == INTEGER)
                 printf("INTEGER");
+            else if (command->args.arguments[error->param_index]->argument_type == FLOAT)
+                printf("FLOAT");
             else if (command->args.arguments[error->param_index]->argument_type == STRING)
                 printf("STRING");
             else

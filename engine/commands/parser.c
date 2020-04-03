@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int parse_command(const char *text, enum sudoku_mode mode, const command_list_t *commands, command_t const **command_ptr,
+int parse_command(char *text, enum sudoku_mode mode, const command_list_t *commands, command_t const **command_ptr,
                   command_arguments_t *args, parsing_errors_t *errors) {
     char *token = NULL, *command_name = NULL, *strtol_end = NULL, strtol_char[2] = "0\x00";
-    int i = 0, num_arg = 0, value;
+    int i = 0, num_arg = 0;
     const command_t *command = NULL;
 
     errors->error_type = NO_ERROR;
@@ -42,7 +42,7 @@ int parse_command(const char *text, enum sudoku_mode mode, const command_list_t 
             args->arguments[num_arg].type = command->args.arguments[num_arg]->argument_type;
 
             if (args->arguments[num_arg].type == INTEGER) {
-                args->arguments[num_arg].value.int_value = strtol(token, &strtol_end, 10);
+                args->arguments[num_arg].value.int_value = (int) strtol(token, &strtol_end, 10);
             } else {
                 args->arguments[num_arg].value.float_value = strtof(token, &strtol_end);
             }

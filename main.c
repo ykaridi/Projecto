@@ -21,15 +21,16 @@ int main(int argc, char *argv[]) {
     command_arguments_t command_arguments;
     enum command_status command_status = UPDATE_COMMANDS;
 
-    int parsing_status = FALSE;
+    int parsing_status;
     parsing_errors_t parsing_error;
 
     load_commands(&command_list);
     game.mode = SOLVE;
 
     do {
-        if (command_status == UPDATE_COMMANDS)
-            update_arguments(&command_list, &game);
+        if (command_status == UPDATE_COMMANDS) {
+            /* update_arguments(&command_list, &game); */
+        }
 
         do {
             if (IS_EOF)
