@@ -3,9 +3,9 @@
 
 #include "../utils.h"
 
-#define SUB_BOARD_CONVERSION i / board->cols, j / board->rows
-#define FLAT_CONVERSION i / board->cols, j / board->rows, i % board->cols, j % board->rows
-#define ARR_CONVERSION (sub_board_i * board->cols + sub_board_j) * board->sub_board_size +\
+#define SUB_BOARD_CONVERSION i / board->rows, j / board->cols
+#define FLAT_CONVERSION i / board->rows, j / board->cols, i % board->rows, j % board->cols
+#define ARR_CONVERSION (sub_board_i * board->rows + sub_board_j) * board->sub_board_size +\
                         (inner_i * board->cols + inner_j)
 
 #define EMPTY_CELL (0)
@@ -13,6 +13,10 @@
 #define FIXED_METADATA ('.')
 #define TEMPORARY_METADATA ('T')
 #define EMPTY_METADATA (' ')
+
+#ifndef NULL
+#define NULL (0)
+#endif
 
 typedef struct _sudoku_board_t {
     int rows;

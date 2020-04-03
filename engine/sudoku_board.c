@@ -20,8 +20,7 @@ sudoku_board_t *create_board(int rows, int cols) {
 
     board->rows = rows;
     board->cols = cols;
-    board->total_rows = rows * rows;
-    board->total_cols = cols * cols;
+    board->total_rows = board -> total_cols = rows * cols;
     board->sub_board_size = rows * cols;
     board->total_size = board->total_rows * board->total_cols;
 
@@ -102,7 +101,7 @@ void copy_board(sudoku_board_t *board_in, sudoku_board_t *board_out) {
  * @return 1 = In board, 0 = Invalid (not in board)
  */
 int is_in_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
-    return in_range(sub_board_i, 0, board->rows) && in_range(sub_board_j, 0, board->cols) &&
+    return in_range(sub_board_i, 0, board->cols) && in_range(sub_board_j, 0, board->rows) &&
            in_range(inner_i, 0, board->rows) && in_range(inner_j, 0, board->cols);
 }
 
@@ -187,7 +186,6 @@ int set_cell_flattened(sudoku_board_t *board, int value, int i, int j) {
 char get_cell_metadata(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
-
     return board->cell_metadata[ARR_CONVERSION];
 }
 
