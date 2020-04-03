@@ -8,7 +8,7 @@
 #ifndef SUDOKU_GAME_H
 #define SUDOKU_GAME_H
 
-enum sudoku_mode {init = 0, edit = 1, solve = 2};
+enum sudoku_mode {INIT = 0, EDIT = 1, SOLVE = 2};
 
 typedef struct _sudoku_game {
     int rows;

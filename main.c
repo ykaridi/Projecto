@@ -1,84 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "main_aux.h"
-#include "exhaustive_backtracking/sudoku_solver.h"
 #include "utils.h"
-#include "parser.h"
-#include "engine/sudoku_commands.h"
+#include "engine/commands/parser.h"
+#include "engine/commands/commands.h"
+#include "engine/sudoku_game.h"
 
-/* IMPORTANT NOTICE: WHEN CHANGING THESE VALUES SHOULD CHANGE ALSO NUM_VALUES IN SUDOKU_SOLVER */
-#define ROWS (3)
-#define COLS (3)
-
-#define MAX_COMMAND_LINE_LEN 1024
-
-void exit_gracefully(sudoku_game_t *game) {
-    destruct_game(game);
-    printf("Exiting...\n");
-    exit(0);
-}
+#define COMMAND_LEN (256)
 
 int main(int argc, char *argv[]) {
-    sudoku_game_t game;
-    int num_fixed_cells;
-    char command_line[MAX_COMMAND_LINE_LEN];
-    command_t command;
-    command_args_t command_arguments;
-    command_output_t command_output = {DONE};
-    command_list_t commands;
-    command_t _commands[] = {
-            {
-                    set, "set"
-            },
-            {
-                    hint, "hint"
-            },
-            {
-                    validate, "validate"
-            },
-            {
-                    restart, "restart"
-            },
-            {
-                    exit_sudoku, "exit"
-            }
+    command_argument_description_t integer_arg = {
+            .argument_type = INTEGER,
+            .enforce_integer_range = TRUE,
+            .lower_bound = 0,
+            .upper_bound = 10
     };
+    command_t command = {
+            .command_name = "test",
+            .modes_of_availability = {
+                    .init = 1,
+                    .edit = 1,
+                    .solve = 1
+            },
+            .args = {
+                    .num_arguments = 1,
+                    .arguments = {
+                            &integer_arg, &integer_arg, &integer_arg
+                    }
+            },
+            .function = NULL
+    };
+    command_t* _commands[] = { &command };
+    command_t *input_command;
+    command_arguments_t args;
+    command_list_t commands = {
+            .num_commands = 1,
+            .commands = _commands
+    };
+    parsing_errors_t parsing_errors;
 
-    commands.num_commands = sizeof(_commands) / sizeof(command_t);
-    commands.commands = _commands;
-
-    if (argc < 2) {
-        printf("Syntax: %s <seed>\n", argv[0]);
-        exit(1);
-    }
-    srand((unsigned) atoi(argv[1]));
-
-    while (command_output.exit_code != EXIT_PROGRAM) {
-        game = create_game(ROWS, COLS);
-        num_fixed_cells = get_num_fixed_cells(&game);
-        if (num_fixed_cells < 0 || num_fixed_cells > 80)
-            exit_gracefully(&game);;
-        update_solution(&game, FALSE);
-        reveal_cells(&game, num_fixed_cells);
-        print_board(game.board);
-
-        if (IS_EOF)
-            exit_gracefully(&game);
-        getchar();
-        do {
-            do {
-                if (IS_EOF)
-                    exit_gracefully(&game);
-                fgets(command_line, MAX_COMMAND_LINE_LEN, stdin);
-                if (IS_EOF)
-                    exit_gracefully(&game);
-            } while (parse_command(command_line, &commands, &command, &command_arguments) != SUCCESS);
-            command_output = command.function(&game, command_arguments);
-        } while (command_output.exit_code == DONE);
-
-        destruct_game(&game);
+    char command_text[256];
+    fgets(command_text, COMMAND_LEN, stdin);
+    if (parse_command(command_text, 0, &commands, &input_command, &args, &parsing_errors) != 0) {
+        print_parsing_error(&parsing_errors, input_command);
     }
 
-    printf("Exiting...\n");
-    return 0;
+    printf("Yay!\n");
 }
