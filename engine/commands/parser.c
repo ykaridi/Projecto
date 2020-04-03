@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int parse_command(const char *text, enum sudoku_mode mode, const command_list_t *commands, command_t **command_ptr,
+int parse_command(const char *text, enum sudoku_mode mode, const command_list_t *commands, command_t const **command_ptr,
                   command_arguments_t *args, parsing_errors_t *errors) {
     char *token = NULL, *command_name = NULL, *strtol_end = NULL, strtol_char[2] = "0\x00";
     int i = 0, num_arg = 0, value;
-    long _value;
-    command_t *command = NULL;
+    const command_t *command = NULL;
+
+    errors->error_type = NO_ERROR;
 
     command_name = strtok(text, DELIM);
     if (command_name == NULL) {
@@ -17,8 +18,8 @@ int parse_command(const char *text, enum sudoku_mode mode, const command_list_t 
         return ERROR;
     }
     for (i = 0; i < commands->num_commands; ++i) {
-        if (strcmp(commands->commands[i]->command_name, command_name) == 0) {
-            command = commands->commands[i];
+        if (strcmp(commands->commands[i].command_name, command_name) == 0) {
+            command = &commands->commands[i];
             *command_ptr = command;
             args->num_arguments = command->args.num_arguments;
         }
@@ -36,28 +37,38 @@ int parse_command(const char *text, enum sudoku_mode mode, const command_list_t 
 
     token = strtok(NULL, DELIM);
     while ((token != NULL) && (num_arg < command->args.num_arguments)) {
-        if (command->args.arguments[num_arg]->argument_type == INTEGER) {
-            args->arguments[num_arg].type = INTEGER;
+        if (command->args.arguments[num_arg]->argument_type == INTEGER ||
+                command->args.arguments[num_arg]->argument_type == FLOAT) {
+            args->arguments[num_arg].type = command->args.arguments[num_arg]->argument_type;
 
-            _value = strtol(token, &strtol_end, 10);
-            *strtol_char = *strtol_end;
-            if (!strstr(DELIM_WITH_NULL, strtol_char)) {
-                errors->error_type = INCORRECT_TYPE;
-                errors->param_index = num_arg;
-                return ERROR;
+            if (args->arguments[num_arg].type == INTEGER) {
+                args->arguments[num_arg].value.int_value = strtol(token, &strtol_end, 10);
+            } else {
+                args->arguments[num_arg].value.float_value = strtof(token, &strtol_end);
             }
 
-            value = _value;
+            *strtol_char = *strtol_end;
+            if (!strstr(DELIM_WITH_NULL, strtol_char) && errors->error_type != NO_ERROR) {
+                errors->error_type = INCORRECT_TYPE;
+                errors->param_index = num_arg;
+            }
 
-            if (command->args.arguments[num_arg]->enforce_integer_range)
-                if (!in_range(value, command->args.arguments[num_arg]->lower_bound,
-                        command->args.arguments[num_arg]->upper_bound)) {
+            if (args->arguments[num_arg].type == INTEGER && command->args.arguments[num_arg]->enforce_range) {
+                if (!in_range(args->arguments[num_arg].value.int_value,
+                              command->args.arguments[num_arg]->lower_bound.int_value,
+                              command->args.arguments[num_arg]->upper_bound.int_value)) {
                     errors->error_type = INCORRECT_RANGE;
                     errors->param_index = num_arg;
-                    return ERROR;
                 }
-
-            args->arguments[num_arg].value.int_value = value;
+            }
+            else if (args->arguments[num_arg].type == FLOAT && command->args.arguments[num_arg]->enforce_range) {
+                if (!float_in_range(args->arguments[num_arg].value.float_value,
+                                    command->args.arguments[num_arg]->lower_bound.float_value,
+                                    command->args.arguments[num_arg]->upper_bound.float_value)) {
+                    errors->error_type = INCORRECT_RANGE;
+                    errors->param_index = num_arg;
+                }
+            }
         } else {
             args->arguments[num_arg].type = STRING;
             args->arguments[num_arg].value.str_value = token;
@@ -70,6 +81,16 @@ int parse_command(const char *text, enum sudoku_mode mode, const command_list_t 
         errors->error_type = INCORRECT_NUM_PARAMS;
         return ERROR;
     }
+    if (num_arg < command->args.num_arguments) {
+        if  (command->args.arguments[num_arg]->optional) {
+            for (; num_arg < command->args.num_arguments; num_arg++) {
+                args->arguments[num_arg].supplied = FALSE;
+            }
+        } else {
+            errors->error_type = INCORRECT_NUM_PARAMS;
+            return ERROR;
+        }
+    }
 
-    return SUCCESS;
+    return errors->error_type == NO_ERROR ? SUCCESS : ERROR;
 }

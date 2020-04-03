@@ -87,11 +87,12 @@ void print_parsing_error(const parsing_errors_t *error, const command_t *command
             printf("]\n");
             break;
         case INCORRECT_NUM_PARAMS:
-            printf("Command [%s] takes %d parameters!\n", command->command_name, command->args.num_arguments);
+            printf("Command [%s] takes %d parameter(s)!\n", command->command_name, command->args.num_arguments);
             break;
         case INCORRECT_TYPE:
             printf("Command [%s] expects parameter [#%d] to be of type [",
                     command->command_name, error->param_index + 1);
+            /* TODO: Handle float */
             if (command->args.arguments[error->param_index]->argument_type == INTEGER)
                 printf("INTEGER");
             else if (command->args.arguments[error->param_index]->argument_type == STRING)
@@ -101,10 +102,16 @@ void print_parsing_error(const parsing_errors_t *error, const command_t *command
             printf("]\n");
             break;
         case INCORRECT_RANGE:
-            printf("Command [%s] expects parameter [#%d] to be an [INTEGER] in the range [%d, %d]!\n",
+            if (command->args.arguments[error->param_index]->argument_type == INTEGER)
+                printf("Command [%s] expects parameter [#%d] to be a [INTEGER] in the range [%d, %d]!\n",
                     command->command_name, error->param_index + 1,
-                    command->args.arguments[error->param_index]->lower_bound,
-                    command->args.arguments[error->param_index]->upper_bound);
+                    command->args.arguments[error->param_index]->lower_bound.int_value,
+                    command->args.arguments[error->param_index]->upper_bound.int_value);
+            else if (command->args.arguments[error->param_index]->argument_type == FLOAT)
+                printf("Command [%s] expects parameter [#%d] to be a [FLOAT] in the range [%f, %f]!\n",
+                       command->command_name, error->param_index + 1,
+                       command->args.arguments[error->param_index]->lower_bound.float_value,
+                       command->args.arguments[error->param_index]->upper_bound.float_value);
             break;
         default:
             printf("An unexpected error occurred!\n");

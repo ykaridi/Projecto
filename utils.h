@@ -19,5 +19,6 @@
 #define IS_EOF (!ferror(stdin) && !ferror(stdout) && feof(stdin))
 
 int in_range(int x, int a, int b);
+int float_in_range(float x, float a, float b);
 
 #endif

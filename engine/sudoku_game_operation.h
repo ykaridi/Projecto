@@ -1,7 +1,3 @@
-//
-// Created by ykaridi on 19/03/2020.
-//
-
 #ifndef SUDOKU_GAME_OPERATION_H
 #define SUDOKU_GAME_OPERATION_H
 

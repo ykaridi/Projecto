@@ -1,7 +1,3 @@
-//
-// Created by ykaridi on 19/03/2020.
-//
-
 #ifndef OPERATION_LIST_H
 #define OPERATION_LIST_H
 

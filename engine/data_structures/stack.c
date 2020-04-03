@@ -1,7 +1,3 @@
-//
-// Created by ykaridi on 19/03/2020.
-//
-
 #include <malloc.h>
 #include "stack.h"
 #include "../../utils.h"

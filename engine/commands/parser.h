@@ -2,11 +2,13 @@
 #define PARSER_H
 
 #include "commands.h"
+#include "sudoku_commands.h"
 
 #define DELIM " \t\r\n"
 #define DELIM_WITH_NULL " \t\r\n\x00"
 
 enum parsing_error_type {
+    NO_ERROR = -1,
     NO_COMMAND = 0,
     UNAVAILABLE_COMMAND = 1,
     INCORRECT_NUM_PARAMS = 2,
@@ -19,7 +21,7 @@ typedef struct _parsing_errors {
     int param_index;
 } parsing_errors_t;
 
-int parse_command(const char *text, enum sudoku_mode mode, const command_list_t *commands, command_t **command_ptr,
+int parse_command(const char *text, enum sudoku_mode mode, const command_list_t *commands, command_t const **command_ptr,
         command_arguments_t *args, parsing_errors_t *errors);
 
 #endif
