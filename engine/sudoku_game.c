@@ -18,7 +18,7 @@ sudoku_game_t* create_game() {
     return game;
 }
 void load_board(sudoku_game_t *game, sudoku_board_t *board) {
-    operation_node_t *operations = create_operation_list();
+    operation_node_t *operations = create_operation_node();
 
     if (operations == NULL) {
         EXIT_ON_ERROR("malloc");
@@ -33,6 +33,7 @@ void load_board(sudoku_game_t *game, sudoku_board_t *board) {
 
     if (game->last_operation != NULL)
         destruct_operation_list(game->last_operation);
+    operation_list_append(operations, create_head_game_operation());
     game->last_operation = operations;
 }
 

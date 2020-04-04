@@ -1,5 +1,5 @@
 #include "sudoku_board.h"
-#include "data_structures/operation_list.h"
+#include "rollback/operation_list.h"
 
 #ifndef SUDOKU_GAME_H
 #define SUDOKU_GAME_H

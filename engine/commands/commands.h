@@ -74,7 +74,8 @@ enum command_status {
     EXIT_PROGRAM = -1,
     DONE = 0,
     BOARD_UPDATE = 1,
-    CMD_ERR = 2
+    PARAMETER_UPDATE = 2,
+    CMD_ERR = 3
 };
 
 /**

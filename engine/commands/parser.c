@@ -14,7 +14,7 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
 
     command_name = strtok(text, DELIM);
     if (command_name == NULL) {
-        errors->error_type = NO_COMMAND;
+        errors->error_type = EMPTY_COMMAND;
         return ERROR;
     }
     for (i = 0; i < commands->num_commands; ++i) {
@@ -44,7 +44,7 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
             if (args->arguments[num_arg].type == INTEGER) {
                 args->arguments[num_arg].value.int_value = (int) strtol(token, &strtol_end, 10);
             } else {
-                args->arguments[num_arg].value.float_value = strtof(token, &strtol_end);
+                args->arguments[num_arg].value.float_value = (float) strtod(token, &strtol_end);
             }
 
             *strtol_char = *strtol_end;
@@ -53,20 +53,21 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
                 errors->param_index = num_arg;
             }
 
-            if (args->arguments[num_arg].type == INTEGER && command->args.arguments[num_arg]->enforce_range) {
-                if (!in_range(args->arguments[num_arg].value.int_value,
-                              command->args.arguments[num_arg]->lower_bound.int_value,
-                              command->args.arguments[num_arg]->upper_bound.int_value)) {
-                    errors->error_type = INCORRECT_RANGE;
-                    errors->param_index = num_arg;
-                }
-            }
-            else if (args->arguments[num_arg].type == FLOAT && command->args.arguments[num_arg]->enforce_range) {
-                if (!float_in_range(args->arguments[num_arg].value.float_value,
-                                    command->args.arguments[num_arg]->lower_bound.float_value,
-                                    command->args.arguments[num_arg]->upper_bound.float_value)) {
-                    errors->error_type = INCORRECT_RANGE;
-                    errors->param_index = num_arg;
+            if (errors->error_type == NO_ERROR) {
+                if (args->arguments[num_arg].type == INTEGER && command->args.arguments[num_arg]->enforce_range) {
+                    if (!in_range(args->arguments[num_arg].value.int_value,
+                                  command->args.arguments[num_arg]->lower_bound.int_value,
+                                  command->args.arguments[num_arg]->upper_bound.int_value)) {
+                        errors->error_type = INCORRECT_RANGE;
+                        errors->param_index = num_arg;
+                    }
+                } else if (args->arguments[num_arg].type == FLOAT && command->args.arguments[num_arg]->enforce_range) {
+                    if (!float_in_range(args->arguments[num_arg].value.float_value,
+                                        command->args.arguments[num_arg]->lower_bound.float_value,
+                                        command->args.arguments[num_arg]->upper_bound.float_value)) {
+                        errors->error_type = INCORRECT_RANGE;
+                        errors->param_index = num_arg;
+                    }
                 }
             }
         } else {

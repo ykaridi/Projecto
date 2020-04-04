@@ -13,7 +13,8 @@ enum parsing_error_types {
     UNAVAILABLE_COMMAND = 1,
     INCORRECT_NUM_PARAMS = 2,
     INCORRECT_TYPE = 3,
-    INCORRECT_RANGE = 4
+    INCORRECT_RANGE = 4,
+    EMPTY_COMMAND = 5
 };
 
 typedef struct _parsing_errors {
