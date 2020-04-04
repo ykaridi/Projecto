@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(ProjectoHW3 C)
 
 #set(CMAKE_C_STANDARD 90)
-set(CMAKE_C_FLAGS "-ansi -pedantic-errors ${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS "-ansi -Wall -Wextra -Werror -pedantic-errors ${CMAKE_C_FLAGS}")
 
 add_executable(ProjectoHW3 main.c engine/sudoku_board.c engine/sudoku_board.h engine/solver/sudoku_solver.c
         engine/solver/sudoku_solver.h utils.c utils.h engine/commands/parser.c engine/commands/parser.h
