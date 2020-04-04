@@ -6,7 +6,7 @@
  * @param board     suduko board to save
  * @return SUCCESS/ERROR. errno is set on error.
  */
-int save_board(const char* pathname, const sudoku_board_t* board) {
+int save_board_to_file(const char* pathname, const sudoku_board_t* board) {
     int m = board -> rows, n = board -> cols;
     int i, j;
 
@@ -39,7 +39,7 @@ int save_board(const char* pathname, const sudoku_board_t* board) {
  * @param board     the address of the pointer to board.
  * @return the status of the function.
  */
-enum load_return_value load_board(const char* pathname, sudoku_board_t** board_ptr) {
+enum load_file_status board_from_file(const char* pathname, sudoku_board_t** board_ptr) {
     int m, n, i = 0, j = 0;
     int cell;
     sudoku_board_t* board;
@@ -56,13 +56,17 @@ enum load_return_value load_board(const char* pathname, sudoku_board_t** board_p
         for(j = 0; j < board->total_cols; ++j) {
             int test_dot = 0;
             if (fscanf(file, " %d ", &cell) < 1) {
-                destruct_board(board);
-                *board_ptr = NULL;
-                return LOAD_EBADFILE;
+                goto _BAD_FILE;
+            }
+            if (cell < 0 || cell > board->total_rows) {
+                goto _BAD_FILE;
             }
             set_cell_flattened(board, cell, i, j);
             fscanf(file, " . %n", &test_dot);
             if (test_dot > 0) {
+                if (cell == 0) {
+                    goto _BAD_FILE;
+                }
                 set_cell_metadata_flattened(board, FIXED_METADATA, i, j);
             }
         }
@@ -70,4 +74,9 @@ enum load_return_value load_board(const char* pathname, sudoku_board_t** board_p
 
     fclose(file);
     return LOAD_SUCCESS;
+
+    _BAD_FILE:
+    destruct_board(board);
+    *board_ptr = NULL;
+    return LOAD_EBADFILE;
 }

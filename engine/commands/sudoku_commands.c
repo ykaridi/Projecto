@@ -1,4 +1,11 @@
+#include <errno.h>
+#include <string.h>
 #include "sudoku_commands.h"
+#include "../fs/sudoku_fs.h"
+#include "../sudoku_solver.h"
+
+#define DEFAULT_NUM_ROWS (3)
+#define DEFAULT_NUM_COlS (3)
 
 enum command_status command_solve(sudoku_game_t *game, const command_arguments_t *args);
 enum command_status command_edit(sudoku_game_t *game, const command_arguments_t *args);
@@ -125,22 +132,135 @@ void update_arguments(command_list_t *command_list, const sudoku_game_t *game) {
  */
 
 enum command_status command_solve(sudoku_game_t *game, const command_arguments_t *args) {
-    return DONE;
+    sudoku_board_t *board, *temp_board;
+    enum load_file_status status;
+    char *path;
+    int row, col;
+
+    path = args->arguments[0].value.str_value;
+    status = board_from_file(path, &board);
+
+    switch (status) {
+        case LOAD_ENOFILE:
+            printf("Error: No such file!\n");
+            return CMD_ERR;
+        case LOAD_EBADFILE:
+            printf("Error: Bad file!\n");
+            return CMD_ERR;
+        default:
+            break;
+    }
+
+    temp_board = create_board(board->rows, board->cols);
+    copy_board(board, temp_board);
+
+    for (row = 0; row < temp_board->total_rows; row++) {
+        for (col = 0; col < temp_board->total_cols; col++) {
+            if (get_cell_metadata_flattened(temp_board, row, col) != FIXED_METADATA) {
+                set_cell_metadata_flattened(temp_board, EMPTY_METADATA, row, col);
+                set_cell_flattened(temp_board, EMPTY_CELL, row, col);
+            }
+        }
+    }
+
+    if (!check_board(temp_board)) {
+        printf("Error: Board is erroneous!\n");
+        destruct_board(board);
+        destruct_board(temp_board);
+        return CMD_ERR;
+    }
+
+    destruct_board(temp_board);
+    load_board(game, board);
+    game->mode = SOLVE;
+    return BOARD_UPDATE;
 }
 
 enum command_status command_edit(sudoku_game_t *game, const command_arguments_t *args) {
-    return DONE;
+    sudoku_board_t *board;
+    enum load_file_status status;
+    char *path;
+
+    if (args->num_arguments == 0) {
+        board = create_board(DEFAULT_NUM_ROWS, DEFAULT_NUM_COlS);
+    } else {
+        path = args->arguments[0].value.str_value;
+        status = board_from_file(path, &board);
+
+        switch (status) {
+            case LOAD_ENOFILE:
+                printf("Error: No such file!");
+                return CMD_ERR;
+            case LOAD_EBADFILE:
+                printf("Error: Bad file!");
+                return CMD_ERR;
+            default:
+                break;
+        }
+    }
+
+    load_board(game, board);
+    game->mode = EDIT;
+    return BOARD_UPDATE;
 }
 
 enum command_status command_mark_errors(sudoku_game_t *game, const command_arguments_t *args) {
+    game->mark_errors = args->arguments[0].value.int_value;
     return DONE;
 }
 
+/**
+ * Prints a sudoku board
+ * @param board
+ */
+void print_board(const sudoku_board_t *board) {
+    int sub_board_i, inner_i, sub_board_j, inner_j, cell_value = 0;
+    /* int n_len = num_length(board->sub_board_size, 10); */
+    int n_len = 2;
+    int total_len = (2 + (n_len + 2) * board->cols) * board->rows + 1;
+
+    for(sub_board_i = 0; sub_board_i < board->cols; sub_board_i++) {
+        print_repeated("-", total_len);
+        printf("\n");
+        for (inner_i = 0; inner_i < board->rows; inner_i++) {
+            for (sub_board_j = 0; sub_board_j < board->rows; sub_board_j++) {
+                printf("| ");
+                for (inner_j = 0; inner_j < board->cols; inner_j++) {
+                    cell_value = get_cell(board, sub_board_i, sub_board_j, inner_i, inner_j);
+
+                    if (cell_value == 0)
+                        printf("%*s", n_len, "");
+                    else {
+                        int value_length = num_length(cell_value, 10);
+                        printf("%*s%d", n_len - value_length, "", cell_value);
+                    }
+                    printf("%c", get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j));
+
+                    printf(" ");
+                }
+            }
+            printf("|\n");
+        }
+    }
+    print_repeated("-", total_len);
+    printf("\n");
+}
 enum command_status command_print_board(sudoku_game_t *game, const command_arguments_t *args) {
+    /* TODO: Treat mark errors */
+    print_board(game->board);
     return DONE;
 }
 
 enum command_status command_set(sudoku_game_t *game, const command_arguments_t *args) {
+    int row = args->arguments[0].value.int_value - 1, col = args->arguments[1].value.int_value - 1;
+    int value = args->arguments[2].value.int_value;
+
+    if (game->mode == SOLVE && get_cell_metadata_flattened(game->board, row, col) == FIXED_METADATA) {
+        printf("Error: Can't edit fixed cell in solve mode!\n");
+        return CMD_ERR;
+    }
+
+    set_cell_flattened(game->board, value, row, col);
     return DONE;
 }
 
@@ -165,6 +285,25 @@ enum command_status command_redo(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args) {
+    char *path = args->arguments[0].value.str_value;
+
+    if (game->mode == EDIT) {
+        if (!check_board(game->board)) {
+            printf("Error: Erroneous board! Aborting save...\n");
+            return CMD_ERR;
+        }
+        /* TODO: Replace with cheaper alternative? */
+        if (backtracking(game->board) <= 0) {
+            printf("Error: Board has not solution! Aborting save...\n");
+            return CMD_ERR;
+        }
+    }
+
+    if (save_board_to_file(path, game->board) != SUCCESS) {
+        printf("Error: Encountered an error while saving board to file! [err=%s]", strerror(errno));
+        return CMD_ERR;
+    }
+
     return DONE;
 }
 
@@ -177,6 +316,8 @@ enum command_status command_guess_hint(sudoku_game_t *game, const command_argume
 }
 
 enum command_status command_num_solutions(sudoku_game_t *game, const command_arguments_t *args) {
+    int num_solutions = backtracking(game->board);
+    printf("Current board has [%d] solutions.", num_solutions);
     return DONE;
 }
 

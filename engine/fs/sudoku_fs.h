@@ -6,15 +6,13 @@
 #include "../../utils.h"
 #include "../sudoku_board.h"
 
-int save_board(const char* pathname, const sudoku_board_t* board);
-
-enum load_return_value {
+enum load_file_status {
     LOAD_SUCCESS = 0,
     LOAD_ENOFILE,
     LOAD_EBADFILE
 };
 
-enum load_return_value load_board(const char* pathname, sudoku_board_t** board);
-
+int save_board_to_file(const char* pathname, const sudoku_board_t* board);
+enum load_file_status board_from_file(const char* pathname, sudoku_board_t** board_ptr);
 
 #endif

@@ -21,7 +21,6 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
         if (strcmp(commands->commands[i].command_name, command_name) == 0) {
             command = &commands->commands[i];
             *command_ptr = command;
-            args->num_arguments = command->args.num_arguments;
         }
     }
 
@@ -37,6 +36,7 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
 
     token = strtok(NULL, DELIM);
     while ((token != NULL) && (num_arg < command->args.num_arguments)) {
+        token[-1] = 0;
         if (command->args.arguments[num_arg]->argument_type == INTEGER ||
                 command->args.arguments[num_arg]->argument_type == FLOAT) {
             args->arguments[num_arg].type = command->args.arguments[num_arg]->argument_type;
@@ -81,6 +81,7 @@ int parse_command(char *text, enum sudoku_mode mode, const command_list_t *comma
         errors->error_type = INCORRECT_NUM_PARAMS;
         return ERROR;
     }
+    args->num_arguments = num_arg;
     if (num_arg < command->args.num_arguments) {
         if  (command->args.arguments[num_arg]->optional) {
             for (; num_arg < command->args.num_arguments; num_arg++) {

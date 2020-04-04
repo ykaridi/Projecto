@@ -73,7 +73,8 @@ typedef struct _modes_availability {
 enum command_status {
     EXIT_PROGRAM = -1,
     DONE = 0,
-    UPDATE_COMMANDS = 1
+    BOARD_UPDATE = 1,
+    CMD_ERR = 2
 };
 
 /**

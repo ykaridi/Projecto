@@ -7,7 +7,7 @@
 #define DELIM " \t\r\n"
 #define DELIM_WITH_NULL " \t\r\n\x00"
 
-enum parsing_error_type {
+enum parsing_error_types {
     NO_ERROR = -1,
     NO_COMMAND = 0,
     UNAVAILABLE_COMMAND = 1,
@@ -17,7 +17,7 @@ enum parsing_error_type {
 };
 
 typedef struct _parsing_errors {
-    enum parsing_error_type error_type;
+    enum parsing_error_types error_type;
     int param_index;
 } parsing_errors_t;
 

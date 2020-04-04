@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #define TRUE (1)
 #define FALSE (0)
@@ -20,5 +21,7 @@
 
 int in_range(int x, int a, int b);
 int float_in_range(float x, float a, float b);
+int num_length(int x, int base);
+void print_repeated(char* s, int times);
 
 #endif

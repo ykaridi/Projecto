@@ -27,7 +27,7 @@ void destroy_stack(stack_t *stack) {
 }
 
 int stack_empty(stack_t *stack) {
-    return stack == NULL;
+    return stack->head == NULL;
 }
 int stack_peek(stack_t *stack) {
     stack_node_t *current;
