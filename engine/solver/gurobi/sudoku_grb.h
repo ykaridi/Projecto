@@ -4,7 +4,7 @@
 #define LOG_FILE "grb.log"
 #define DEFAULT_MODEL_NAME "sudoku_model"
 
-#include "../sudoku_board.h"
+#include "../../sudoku_board.h"
 
 #define GURUBI_OUTPUT 1
 

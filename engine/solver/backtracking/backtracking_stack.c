@@ -1,6 +1,6 @@
 #include <malloc.h>
 #include "backtracking_stack.h"
-#include "../../utils.h"
+#include "../../../utils.h"
 
 backtracking_stack_t* create_backtracking_stack() {
     backtracking_stack_t *stack = malloc(sizeof(backtracking_stack_t));

@@ -4,8 +4,8 @@
 
 #include "sudoku_grb.h"
 #include "gurobi_c.h"
-#include "../../utils.h"
-#include "../sudoku_board.h"
+#include "../../../utils.h"
+#include "../../sudoku_board.h"
 #include "sudoku_var_list.h"
 
 

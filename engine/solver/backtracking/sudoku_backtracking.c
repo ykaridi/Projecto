@@ -1,5 +1,5 @@
-#include "sudoku_solver.h"
-#include "../sudoku_board.h"
+#include "sudoku_backtracking.h"
+#include "../../sudoku_board.h"
 #include "backtracking_stack.h"
 
 int backtracking(sudoku_board_t *board) {

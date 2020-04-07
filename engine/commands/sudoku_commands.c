@@ -2,7 +2,7 @@
 #include <string.h>
 #include "sudoku_commands.h"
 #include "../fs/sudoku_fs.h"
-#include "../solver/sudoku_solver.h"
+#include "../solver/backtracking/sudoku_backtracking.h"
 #include "../user_interface.h"
 
 #define DEFAULT_NUM_ROWS (3)
@@ -211,7 +211,6 @@ enum command_status command_mark_errors(sudoku_game_t *game, const command_argum
 }
 
 enum command_status command_print_board(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
-    /* TODO: Treat mark errors */
     print_board(game->board, game->mode == EDIT || game->mark_errors);
     return DONE;
 }
@@ -228,8 +227,6 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
 
     operation = create_composite_game_operation(SET, row + 1, col + 1, new_value, 0);
     append_atomic_operation(operation, row, col, old_value, new_value);
-
-    /* TODO: Check if board is solved */
 
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
