@@ -211,7 +211,7 @@ enum command_status command_mark_errors(sudoku_game_t *game, const command_argum
 }
 
 enum command_status command_print_board(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
-    print_board(game->board, game->mode == EDIT || game->mark_errors);
+    print_board(game->board, game->mode == EDIT || game->mark_errors, game->mode != EDIT);
     return DONE;
 }
 
@@ -290,6 +290,7 @@ enum command_status command_redo(sudoku_game_t *game, __attribute__ ((unused)) c
 
 enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args) {
     char *path = args->arguments[0].value.str_value;
+    int i, j;
 
     if (game->mode == EDIT) {
         if (!check_board(game->board)) {
@@ -303,7 +304,16 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
         }
     }
 
-    if (save_board_to_file(path, game->board) != SUCCESS) {
+    copy_board(game->board, game->temporary_board);
+    for (i = 0; i < game->board->total_rows; i++) {
+        for (j = 0; j < game->board->total_cols; j++) {
+            if (get_cell_flattened(game->temporary_board, i, j) == EMPTY_CELL)
+                set_cell_metadata_flattened(game->temporary_board, EMPTY_METADATA, i, j);
+            else
+                set_cell_metadata_flattened(game->temporary_board, FIXED_METADATA, i, j);
+        }
+    }
+    if (save_board_to_file(path, game->temporary_board) != SUCCESS) {
         printf("Error: Encountered an error while saving board to file! [err=%s]\n", strerror(errno));
         return CMD_ERR;
     }

@@ -6,6 +6,6 @@
 
 void print_parsing_error(const parsing_errors_t *error, const command_t *command);
 void print_game_operation(const sudoku_game_operation_t *operation, int undo);
-void print_board(sudoku_board_t *board, int mark_errors);
+void print_board(sudoku_board_t *board, int mark_errors, int mark_fixings);
 
 #endif

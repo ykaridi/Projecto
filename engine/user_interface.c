@@ -99,7 +99,7 @@ void print_game_operation(const sudoku_game_operation_t *operation, int undo) {
  * Prints a sudoku board
  * @param board
  */
-void print_board(sudoku_board_t *board, int mark_errors) {
+void print_board(sudoku_board_t *board, int mark_errors, int mark_fixings) {
     int sub_board_i, inner_i, sub_board_j, inner_j, cell_value = 0;
     /* int n_len = num_length(board->sub_board_size, 10); */
     int n_len = 2;
@@ -128,9 +128,12 @@ void print_board(sudoku_board_t *board, int mark_errors) {
                                 ? EMPTY_METADATA : ERROR_METADATA;
                     }
 
-                    printf("%c", metadata);
-
-                    printf(" ");
+                    if (metadata == FIXED_METADATA) {
+                        if (mark_fixings)
+                            printf("%c", FIXED_METADATA);
+                    } else {
+                        printf("%c", metadata);
+                    }
                 }
             }
             printf("|\n");
