@@ -190,10 +190,10 @@ enum command_status command_edit(sudoku_game_t *game, const command_arguments_t 
 
         switch (status) {
             case LOAD_ENOFILE:
-                printf("Error: No such file!");
+                printf("Error: No such file!\n");
                 return CMD_ERR;
             case LOAD_EBADFILE:
-                printf("Error: Bad file!");
+                printf("Error: Bad file!\n");
                 return CMD_ERR;
             default:
                 break;
@@ -212,7 +212,7 @@ enum command_status command_mark_errors(sudoku_game_t *game, const command_argum
 
 enum command_status command_print_board(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     /* TODO: Treat mark errors */
-    print_board(game->board);
+    print_board(game->board, game->mode == EDIT || game->mark_errors);
     return DONE;
 }
 
@@ -229,6 +229,8 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
     operation = create_composite_game_operation(SET, row + 1, col + 1, new_value, 0);
     append_atomic_operation(operation, row, col, old_value, new_value);
 
+    /* TODO: Check if board is solved */
+
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
         game->last_operation = game->last_operation->next;
@@ -239,9 +241,9 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
 enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     /* TODO: Replace with ILP */
     if (backtracking(game->board) <= 0) {
-        printf("Board has no solution!");
+        printf("Board has no solution!\n");
     } else {
-        printf("Board has a solution!");
+        printf("Board has a solution!\n");
     }
 
     return DONE;
@@ -305,7 +307,7 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
     }
 
     if (save_board_to_file(path, game->board) != SUCCESS) {
-        printf("Error: Encountered an error while saving board to file! [err=%s]", strerror(errno));
+        printf("Error: Encountered an error while saving board to file! [err=%s]\n", strerror(errno));
         return CMD_ERR;
     }
 

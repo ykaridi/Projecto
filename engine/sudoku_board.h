@@ -3,16 +3,20 @@
 
 #include "../utils.h"
 
-#define SUB_BOARD_CONVERSION i / board->rows, j / board->cols
-#define FLAT_CONVERSION i / board->rows, j / board->cols, i % board->rows, j % board->cols
-#define ARR_CONVERSION (sub_board_i * board->rows + sub_board_j) * board->sub_board_size +\
-                        (inner_i * board->cols + inner_j)
+#define SUB_BOARD_CONVERSION_ROW (i / board->rows)
+#define SUB_BOARD_CONVERSION_COL (j / board->cols)
+#define SUB_BOARD_CONVERSION SUB_BOARD_CONVERSION_ROW, SUB_BOARD_CONVERSION_COL
+#define FULL_CONVERSION (sub_board_i * board->rows + inner_i), (sub_board_j * board->cols + inner_j)
+#define FLAT_CONVERSION (i / board->rows), (j / board->cols), (i % board->rows), (j % board->cols)
+#define ARR_CONVERSION ((sub_board_i * board->rows + sub_board_j) * board->sub_board_size +\
+                        (inner_i * board->cols + inner_j))
 
 #define EMPTY_CELL (0)
 
 #define FIXED_METADATA ('.')
 #define TEMPORARY_METADATA ('T')
 #define EMPTY_METADATA (' ')
+#define ERROR_METADATA ('*')
 
 typedef struct _sudoku_board {
     int rows;
@@ -58,7 +62,8 @@ int check_column(const sudoku_board_t *board, int col, int value);
 int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int value);
 int check_board(const sudoku_board_t *board);
 
-int check_value(const sudoku_board_t *board, int value, int i, int j);
+int check_value_flattened(sudoku_board_t *board, int value, int i, int j);
+int check_value(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j);
 
 int is_board_full(const sudoku_board_t *board);
 

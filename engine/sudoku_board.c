@@ -342,8 +342,8 @@ int check_board(const sudoku_board_t *board) {
         if (check_column(board, j, 0) == FALSE)
             return FALSE;
     }
-    for (i = 0; i < board->rows; i++) {
-        for (j = 0; j < board->cols; j++) {
+    for (i = 0; i < board->cols; i++) {
+        for (j = 0; j < board->rows; j++) {
             if (check_sub_board(board, i, j, 0) == FALSE)
                 return FALSE;
         }
@@ -360,10 +360,20 @@ int check_board(const sudoku_board_t *board) {
  * @param j
  * @return
  */
-int check_value(const sudoku_board_t *board, int value, int i, int j) {
-    return check_row(board, i, value) &&
-           check_column(board, j, value) &&
-           check_sub_board(board, SUB_BOARD_CONVERSION, value);
+int check_value_flattened(sudoku_board_t *board, int value, int i, int j) {
+    int old_value = get_cell_flattened(board, i, j), ret = 0;
+    if (value != 0)
+        set_cell_flattened(board, 0, i, j);
+    ret = check_row(board, i, value)
+            && check_column(board, j, value)
+            && check_sub_board(board, SUB_BOARD_CONVERSION, value);
+    if (value != 0)
+        set_cell_flattened(board, old_value, i, j);
+    return ret;
+}
+
+int check_value(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
+    return check_value_flattened(board, value, FULL_CONVERSION);
 }
 
 /**

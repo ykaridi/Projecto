@@ -99,11 +99,12 @@ void print_game_operation(const sudoku_game_operation_t *operation, int undo) {
  * Prints a sudoku board
  * @param board
  */
-void print_board(const sudoku_board_t *board) {
+void print_board(sudoku_board_t *board, int mark_errors) {
     int sub_board_i, inner_i, sub_board_j, inner_j, cell_value = 0;
     /* int n_len = num_length(board->sub_board_size, 10); */
     int n_len = 2;
     int total_len = (2 + (n_len + 2) * board->cols) * board->rows + 1;
+    char metadata;
 
     for(sub_board_i = 0; sub_board_i < board->cols; sub_board_i++) {
         print_repeated("-", total_len);
@@ -113,6 +114,7 @@ void print_board(const sudoku_board_t *board) {
                 printf("| ");
                 for (inner_j = 0; inner_j < board->cols; inner_j++) {
                     cell_value = get_cell(board, sub_board_i, sub_board_j, inner_i, inner_j);
+                    metadata = get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j);
 
                     if (cell_value == 0)
                         printf("%*s", n_len, "");
@@ -120,7 +122,13 @@ void print_board(const sudoku_board_t *board) {
                         int value_length = num_length(cell_value, 10);
                         printf("%*s%d", n_len - value_length, "", cell_value);
                     }
-                    printf("%c", get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j));
+
+                    if (metadata == EMPTY_METADATA && mark_errors && cell_value != EMPTY_CELL) {
+                        metadata = check_value(board, cell_value, sub_board_i, sub_board_j, inner_i, inner_j)
+                                ? EMPTY_METADATA : ERROR_METADATA;
+                    }
+
+                    printf("%c", metadata);
 
                     printf(" ");
                 }
