@@ -425,8 +425,32 @@ command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const comman
     return DONE;
 }
 
-enum command_status command_autofill(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
-    printf("Unimplemented [%d, %d]!\n", game->mode, args->num_arguments);
+enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)) const command_arguments_t *args) {
+    int i, j, v, f, t;
+    if (check_board(game->board)) {
+        printf("Error: Board is erroneous!\n");
+        return CMD_ERR;
+    }
+
+    copy_board(game->board, game->temporary_board);
+    for (i = 0; i < game->board->total_rows; i++) {
+        for (j = 0; j < game->board->total_cols; j++) {
+            if (get_cell_flattened(game->board, i, j) != EMPTY_CELL)
+                continue;
+
+            f = 0, v = 0;
+            for(t = 1; t <= game->board->sub_board_size; t++) {
+                if (check_value_flattened(game->board, t, i, j)) {
+                    v = t;
+                    f++;
+                }
+            }
+
+            if (f == 1)
+                set_cell_flattened(game->temporary_board, v, i, j);
+        }
+    }
+    copy_board(game->temporary_board, game->board);
     return BOARD_UPDATE;
 }
 

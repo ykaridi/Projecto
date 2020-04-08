@@ -126,14 +126,11 @@ void print_board(sudoku_board_t *board, int mark_errors, int mark_fixings) {
                     if (metadata == EMPTY_METADATA && mark_errors && cell_value != EMPTY_CELL) {
                         metadata = check_value(board, cell_value, sub_board_i, sub_board_j, inner_i, inner_j)
                                 ? EMPTY_METADATA : ERROR_METADATA;
+                    } else if (metadata == FIXED_METADATA) {
+                        metadata = mark_fixings ? FIXED_METADATA : EMPTY_METADATA;
                     }
 
-                    if (metadata == FIXED_METADATA) {
-                        if (mark_fixings)
-                            printf("%c", FIXED_METADATA);
-                    } else {
-                        printf("%c", metadata);
-                    }
+                    printf("%c", metadata);
                 }
             }
             printf("|\n");
