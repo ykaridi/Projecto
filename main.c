@@ -53,8 +53,8 @@ int main() {
         } while (parsing_status);
         command_status = (*command).function(game, &command_arguments);
         if (command_status == BOARD_UPDATE || command_status == PARAMETER_UPDATE) {
-            print_board(game->board, game->mode == EDIT || game->mark_errors);
-            if (is_board_full(game->board)) {
+            print_board(game->board, game->mode == EDIT || game->mark_errors, game->mode != EDIT);
+            if (game->mode == SOLVE && is_board_full(game->board)) {
                 if (check_board(game->board)) {
                     printf("Board was solved successfully!\n");
                     game->mode = INIT;
