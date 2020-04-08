@@ -4,34 +4,53 @@
 #include "../fs/sudoku_fs.h"
 #include "../solver/backtracking/sudoku_backtracking.h"
 #include "../user_interface.h"
+#include "../solver/gurobi/sudoku_grb.h"
+#include "../random.h"
 
 #define DEFAULT_NUM_ROWS (3)
 #define DEFAULT_NUM_COlS (3)
 
 enum command_status command_solve(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_edit(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_mark_errors(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_print_board(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_set(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_validate(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_undo(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_redo(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_num_solutions(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_autofill(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_reset(sudoku_game_t *game, const command_arguments_t *args);
-enum command_status command_exit(sudoku_game_t *game, const command_arguments_t *args) ;
 
-command_t construct_command(const char* name, int num_args, command_argument_description_t *arg1,
-                            command_argument_description_t *arg2, command_argument_description_t *arg3, int available_init,
+enum command_status command_edit(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_mark_errors(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_print_board(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_set(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_validate(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_undo(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_redo(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_num_solutions(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_autofill(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_reset(sudoku_game_t *game, const command_arguments_t *args);
+
+enum command_status command_exit(sudoku_game_t *game, const command_arguments_t *args);
+
+command_t construct_command(const char *name, int num_args, command_argument_description_t *arg1,
+                            command_argument_description_t *arg2, command_argument_description_t *arg3,
+                            int available_init,
                             int available_edit, int available_solve,
                             enum command_status (*function)(sudoku_game_t *, const command_arguments_t *)) {
     command_t command;
-    command_arguments_description_t* arguments = &command.args;
+    command_arguments_description_t *arguments = &command.args;
     modes_availability_t *modes_of_availability = &command.modes_of_availability;
 
     command.command_name = name;
@@ -100,21 +119,32 @@ void load_commands(command_list_t *command_list) {
 
     command_list->num_commands = NUM_COMMANDS;
 
-    command_list->commands[0] = construct_command("solve", 1, generic_string, NULL, NULL, TRUE, TRUE, TRUE, command_solve);
-    command_list->commands[1] = construct_command("edit", 1, optional_string, NULL, NULL, TRUE, TRUE, TRUE, command_edit);
-    command_list->commands[2] = construct_command("mark_errors", 1, boolean, NULL, NULL, FALSE, FALSE, TRUE, command_mark_errors);
-    command_list->commands[3] = construct_command("print_board", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_print_board);
-    command_list->commands[4] = construct_command("set", 3, integer_boardidx_min1, integer_boardidx_min1, integer_boardidx_min0, FALSE, TRUE, TRUE, command_set);
+    command_list->commands[0] = construct_command("solve", 1, generic_string, NULL, NULL, TRUE, TRUE, TRUE,
+                                                  command_solve);
+    command_list->commands[1] = construct_command("edit", 1, optional_string, NULL, NULL, TRUE, TRUE, TRUE,
+                                                  command_edit);
+    command_list->commands[2] = construct_command("mark_errors", 1, boolean, NULL, NULL, FALSE, FALSE, TRUE,
+                                                  command_mark_errors);
+    command_list->commands[3] = construct_command("print_board", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE,
+                                                  command_print_board);
+    command_list->commands[4] = construct_command("set", 3, integer_boardidx_min1, integer_boardidx_min1,
+                                                  integer_boardidx_min0, FALSE, TRUE, TRUE, command_set);
     command_list->commands[5] = construct_command("validate", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_validate);
     command_list->commands[6] = construct_command("guess", 1, zo_float, NULL, NULL, FALSE, FALSE, TRUE, command_guess);
-    command_list->commands[7] = construct_command("generate", 2, integer_boardsize_min0, integer_boardsize_min1, NULL, FALSE, TRUE, FALSE, command_generate);
+    command_list->commands[7] = construct_command("generate", 2, integer_boardsize_min0, integer_boardsize_min1, NULL,
+                                                  FALSE, TRUE, FALSE, command_generate);
     command_list->commands[8] = construct_command("undo", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_undo);
     command_list->commands[9] = construct_command("redo", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_redo);
-    command_list->commands[10] = construct_command("save", 1, generic_string, NULL, NULL, FALSE, TRUE, TRUE, command_save);
-    command_list->commands[11] = construct_command("hint", 2, integer_boardidx_min1, integer_boardidx_min1, NULL, FALSE, FALSE, TRUE, command_hint);
-    command_list->commands[12] = construct_command("guess_hint", 2, integer_boardidx_min1, integer_boardidx_min1, NULL, FALSE, FALSE, TRUE, command_guess_hint);
-    command_list->commands[13] = construct_command("num_solutions", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_num_solutions);
-    command_list->commands[14] = construct_command("autofill", 0, NULL, NULL, NULL, FALSE, FALSE, TRUE, command_autofill);
+    command_list->commands[10] = construct_command("save", 1, generic_string, NULL, NULL, FALSE, TRUE, TRUE,
+                                                   command_save);
+    command_list->commands[11] = construct_command("hint", 2, integer_boardidx_min1, integer_boardidx_min1, NULL, FALSE,
+                                                   FALSE, TRUE, command_hint);
+    command_list->commands[12] = construct_command("guess_hint", 2, integer_boardidx_min1, integer_boardidx_min1, NULL,
+                                                   FALSE, FALSE, TRUE, command_guess_hint);
+    command_list->commands[13] = construct_command("num_solutions", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE,
+                                                   command_num_solutions);
+    command_list->commands[14] = construct_command("autofill", 0, NULL, NULL, NULL, FALSE, FALSE, TRUE,
+                                                   command_autofill);
     command_list->commands[15] = construct_command("reset", 0, NULL, NULL, NULL, FALSE, TRUE, TRUE, command_reset);
     command_list->commands[16] = construct_command("exit", 0, NULL, NULL, NULL, TRUE, TRUE, TRUE, command_exit);
 }
@@ -236,11 +266,16 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
 }
 
 enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
-    /* TODO: Replace with ILP */
-    if (backtracking(game->board) <= 0) {
-        printf("Board has no solution!\n");
-    } else {
+    int solvable;
+    if (is_solvable(game->board, &solvable) != SUCCESS) {
+        print_gurobi_error();
+        return CMD_ERR;
+    }
+
+    if (solvable) {
         printf("Board has a solution!\n");
+    } else {
+        printf("Board has no solution!\n");
     }
 
     return DONE;
@@ -252,8 +287,33 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
 }
 
 enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args) {
-    printf("Unimplemented [%d, %d]!\n", game->mode, args->num_arguments);
-    return BOARD_UPDATE;
+    int x = args->arguments[0].value.int_value;
+    /*int y = args->arguments[1].value.int_value;*/
+    int iterations = 0;
+
+    if (x > empty_cells_num(game->board)) {
+        printf("Error: The board does not contain %d empty cells\n", x);
+        return CMD_ERR;
+    }
+
+    if (!check_board(game->board)) {
+        printf("Error: Board is erroneous!\n");
+    }
+
+    copy_board(game->board, game->temporary_board);
+
+    while (iterations < MAX_ITERATIONS) {
+        if (random_fill_empty_cells(game->board, x) != SUCCESS) {
+            iterations++;
+            continue;
+        }
+
+    }
+    print_board(game->board, TRUE);
+
+
+    return DONE;
+    /*return BOARD_UPDATE;*/
 }
 
 enum command_status command_undo(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
@@ -312,7 +372,34 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args) {
-    printf("Unimplemented [%d, %d]!\n", game->mode, args->num_arguments);
+    int row = args->arguments[0].value.int_value - 1;
+    int col = args->arguments[1].value.int_value - 1;
+    int ret_val;
+
+    if (!check_board(game->board)) {
+        printf("Error: Erroneous board!\n");
+        return CMD_ERR;
+    }
+    if (get_cell_metadata_flattened(game->board, row, col) == FIXED_METADATA) {
+        printf("Error: The cell is fixed!\n");
+        return CMD_ERR;
+    }
+    if (get_cell_flattened(game->board, row, col) != 0) {
+        printf("Error: Cell already contains a value!\n");
+        return CMD_ERR;
+    }
+    copy_board(game->board, game->temporary_board);
+
+    ret_val = solve_board(game->temporary_board, ILP);
+    if (ret_val == ERROR) {
+        print_gurobi_error();
+        return CMD_ERR;
+    } else if (ret_val == UNSOLVABLE) {
+        printf("Error: The board is unsolvable.");
+        return CMD_ERR;
+    }
+    printf("Hint: try setting %d, %d to %d\n", row + 1, col + 1, get_cell_flattened(game->temporary_board, row, col));
+
     return DONE;
 }
 
@@ -321,7 +408,8 @@ enum command_status command_guess_hint(sudoku_game_t *game, const command_argume
     return DONE;
 }
 
-enum command_status command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
+enum command_status
+command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     int num_solutions = backtracking(game->board);
     printf("Current board has [%d] solution(s).\n", num_solutions);
     return DONE;
@@ -344,6 +432,7 @@ enum command_status command_reset(sudoku_game_t *game, __attribute__ ((unused)) 
     return BOARD_UPDATE;
 }
 
-enum command_status command_exit(__attribute__ ((unused)) sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
+enum command_status
+command_exit(__attribute__ ((unused)) sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     return EXIT_PROGRAM;
 }

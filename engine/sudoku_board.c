@@ -392,3 +392,22 @@ int is_board_full(const sudoku_board_t *board) {
     }
     return TRUE;
 }
+
+/**
+ * Returns number of empty cells in board.
+ * @param board
+ * @return
+ */
+int empty_cells_num(const sudoku_board_t *board) {
+    int i, j;
+    int num = 0;
+
+    for (i = 0; i < board->total_size; ++i) {
+        for(j = 0; j < board->total_size; ++j) {
+            if (get_cell_flattened(board, i, j) == 0) {
+                num += 1;
+            }
+        }
+    }
+    return num;
+}

@@ -67,4 +67,6 @@ int check_value(sudoku_board_t *board, int value, int sub_board_i, int sub_board
 
 int is_board_full(const sudoku_board_t *board);
 
+int empty_cells_num(const sudoku_board_t *board);
+
 #endif

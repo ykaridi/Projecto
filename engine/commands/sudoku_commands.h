@@ -6,6 +6,8 @@
 
 #define NUM_COMMANDS (17)
 
+#define MAX_ITERATIONS (1000)
+
 /**
  * A list of available commands
  */

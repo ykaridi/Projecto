@@ -302,6 +302,13 @@ int setup_model(GRBmodel *model, var_list_t *var_list, enum programming_type pro
     return SUCCESS;
 }
 
+/**
+ * Gets an optimized model and var_list and sets the board according to the solution.
+ * @param model
+ * @param var_list
+ * @param board
+ * @return
+ */
 int get_solved_board_ilp(GRBmodel *model, const var_list_t *var_list, sudoku_board_t *board) {
     int i, j, v, var, index = 0, size = var_list->size;
     double *outputs;
@@ -339,37 +346,135 @@ int get_solved_board_ilp(GRBmodel *model, const var_list_t *var_list, sudoku_boa
     return SUCCESS;
 }
 
-void solve_board(sudoku_board_t *board, enum programming_type type) {
+/**
+ * Runs the ILP/LP Gurobi optimizer on the given board.
+ * @param model
+ * @param board
+ * @param type
+ * @return SUCCESS/ERROR.
+ */
+int run_gurobi_on_board(GRBmodel *model, var_list_t* var_list, enum programming_type type) {
+    if (setup_model(model, var_list, type) != SUCCESS) {
+        return ERROR;
+    }
+
+    if (GRBoptimize(model)) {
+        return ERROR;
+    }
+
+    return SUCCESS;
+}
+
+
+/**
+ * Checks if an already optimized model is solvable.
+ * @param model
+ * @param solvable
+ * @return SUCCESS/ERROR
+ */
+int optimized_model_is_solvable(GRBmodel* model, int *solvable) {
+    int optimstatus;
+
+    if (GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus)) {
+        return ERROR;
+    }
+
+    if(optimstatus == GRB_OPTIMAL) {
+        *solvable = TRUE;
+    }
+    else {
+        *solvable = FALSE;
+    }
+    return SUCCESS;
+}
+
+/**
+ * Gets a board and returns True/False.
+ * @param board
+ * @param solvable: pointer to return value.
+ * @return ERROR/SUCCESS. Error means a Gurobi error.
+ */
+int is_solvable(sudoku_board_t *board, int *solvable) {
     GRBenv *env = NULL;
     GRBmodel *model = NULL;
-    var_list_t *var_list = get_variables(board);
+    var_list_t *var_list = NULL;
 
     if (get_enviroment(&env) != SUCCESS) {
-        perror("fuck me\n");
-        return;
+        return ERROR;
     }
 
     if (init_model(env, &model) != SUCCESS) {
-        printf("fuck me 2\n");
-        return;
+        return ERROR;
     }
 
-    if (setup_model(model, var_list, type) != SUCCESS) {
-        printf("fuckkk %s\n", GRBgeterrormsg(env));
+    var_list = get_variables(board);
+
+    if (run_gurobi_on_board(model, var_list, ILP) != SUCCESS) {
+        GRBfreemodel(model);
+        free_var_list(var_list);
+        return ERROR;
     }
 
-    printf("%d\n\n", var_list->size);
-
-    if (GRBoptimize(model)) {
-        printf("fuck1");
+    if (optimized_model_is_solvable(model, solvable) != SUCCESS) {
+        GRBfreemodel(model);
+        free_var_list(var_list);
+        return ERROR;
     }
 
-    printf("%d\n\n", var_list->size);
-
-    if (get_solved_board_ilp(model, var_list, board) != SUCCESS) {
-        printf("fuck2");
-    }
-
-    free_var_list(var_list);
     GRBfreemodel(model);
+    free_var_list(var_list);
+    return SUCCESS;
+}
+
+/**
+ * Solves the board, rewriting on it.
+ * @param board
+ * @param type ILP/LP.
+ * @return SUCCESS/ERROR.
+ */
+int solve_board(sudoku_board_t* board, enum programming_type type) {
+    GRBenv *env = NULL;
+    GRBmodel *model = NULL;
+    var_list_t *var_list = NULL;
+    int solvable;
+
+    if (get_enviroment(&env) != SUCCESS) {
+        return ERROR;
+    }
+
+    if (init_model(env, &model) != SUCCESS) {
+        return ERROR;
+    }
+
+    var_list = get_variables(board);
+
+    if (run_gurobi_on_board(model, var_list, type) != SUCCESS) {
+        return ERROR;
+    }
+
+    if (optimized_model_is_solvable(model, &solvable) != SUCCESS) {
+        return ERROR;
+    }
+
+    if (!solvable)
+        return UNSOLVABLE;
+
+    /* TODO: LP */
+    if (get_solved_board_ilp(model, var_list, board) != SUCCESS) {
+        return ERROR;
+    }
+
+    return SUCCESS;
+}
+
+
+/**
+ * Prints the last gurobi error.
+ */
+void print_gurobi_error() {
+    GRBenv* env = NULL;
+    if (!get_enviroment(&env)) {
+        printf("Error: Gurobi: Could not get environment.");
+    }
+    printf("Error: Gurobi: %s\n", GRBgeterrormsg(env));
 }
