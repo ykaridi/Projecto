@@ -4,7 +4,7 @@
 #include "../fs/sudoku_fs.h"
 #include "../solver/backtracking/sudoku_backtracking.h"
 #include "../user_interface.h"
-#include "../solver/gurobi/sudoku_grb.h"
+#include "../solver/gurobi/grb_commands.h"
 #include "../random.h"
 
 #define DEFAULT_NUM_ROWS (3)
@@ -184,7 +184,6 @@ enum command_status command_solve(sudoku_game_t *game, const command_arguments_t
 
     temp_board = create_board(board->rows, board->cols);
     copy_board(board, temp_board);
-
     for (row = 0; row < temp_board->total_rows; row++) {
         for (col = 0; col < temp_board->total_cols; col++) {
             if (get_cell_metadata_flattened(temp_board, row, col) != FIXED_METADATA) {
@@ -266,8 +265,12 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
 }
 
 enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
-    int solvable;
-    if (is_solvable(game->board, &solvable) != SUCCESS) {
+    bool solvable;
+    grb_args_t grb_args;
+
+    create_grb_validate(&grb_args, &solvable);
+
+    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
         print_gurobi_error();
         return CMD_ERR;
     }
@@ -282,14 +285,56 @@ enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused
 }
 
 enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args) {
-    printf("Unimplemented [%d, %d]!\n", game->mode, args->num_arguments);
+    float x = args->arguments[0].value.float_value;
+    int index;
+    sudoku_game_operation_t *operation;
+    bool solvable;
+    grb_args_t grb_args;
+
+    create_grb_guess(&grb_args, &solvable, x);
+
+    if (!check_board(game->board)) {
+        printf("Error: Board is erroneous!\n");
+    }
+
+    copy_board(game->board, game->temporary_board);
+    if (grb_command(game->temporary_board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error();
+        return CMD_ERR;
+    }
+
+    if (!solvable) {
+        printf("Error: Gurobi LP could not find a solution!\n");
+        return CMD_ERR;
+    }
+
+    operation = create_composite_game_operation(GUESS, 0, 0, 0, x);
+
+    for (index = 0; index < game->board->total_size; ++index) {
+        int row = index / game->board->total_cols, col = index % game->board->total_rows;
+        int old_value = get_cell_flattened(game->board, row, col);
+        int new_value = get_cell_flattened(game->temporary_board, row, col);
+        if (old_value != new_value) {
+            append_atomic_operation(operation, row, col, old_value, new_value);
+        }
+    }
+    copy_board(game->temporary_board, game->board);
+
+    operation_list_delete_after(game->last_operation);
+    if (operation_list_append(game->last_operation, operation))
+        game->last_operation = game->last_operation->next;
     return BOARD_UPDATE;
 }
 
 enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args) {
     int x = args->arguments[0].value.int_value;
-    /*int y = args->arguments[1].value.int_value;*/
-    int iterations = 0;
+    int y = args->arguments[1].value.int_value;
+    int iterations = 0, index;
+    sudoku_game_operation_t *operation;
+    bool solvable;
+    grb_args_t grb_args;
+
+    create_grb_solve(&grb_args, &solvable);
 
     if (x > empty_cells_num(game->board)) {
         printf("Error: The board does not contain %d empty cells\n", x);
@@ -300,20 +345,45 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
         printf("Error: Board is erroneous!\n");
     }
 
-    copy_board(game->board, game->temporary_board);
-
-    while (iterations < MAX_ITERATIONS) {
-        if (random_fill_empty_cells(game->board, x) != SUCCESS) {
-            iterations++;
+    for (iterations = 0; iterations < MAX_ITERATIONS; ++iterations) {
+        copy_board(game->board, game->temporary_board);
+        if (random_fill_empty_cells(game->temporary_board, x) != SUCCESS) {
             continue;
         }
-
+        if (grb_command(game->temporary_board, &grb_args) != GRB_SUCCESS) {
+            printf("this\n");
+            print_gurobi_error();
+            return CMD_ERR;
+        }
+        if (solvable) {
+            break;
+        }
+        /* else: unsolvable board*/
     }
-    print_board(game->board, TRUE);
 
+    if (iterations == MAX_ITERATIONS) {
+        printf("Error: Max iterations reached\n");
+        return CMD_ERR;
+    }
 
-    return DONE;
-    /*return BOARD_UPDATE;*/
+    keep_randomly_chosen_cells(game->temporary_board, y);
+
+    operation = create_composite_game_operation(GENERATE, x, y, 0, 0);
+
+    for (index = 0; index < game->board->total_size; ++index) {
+        int row = index / game->board->total_cols, col = index % game->board->total_rows;
+        int old_value = get_cell_flattened(game->board, row, col);
+        int new_value = get_cell_flattened(game->temporary_board, row, col);
+        if (old_value != new_value) {
+            append_atomic_operation(operation, row, col, old_value, new_value);
+        }
+    }
+    copy_board(game->temporary_board, game->board);
+
+    operation_list_delete_after(game->last_operation);
+    if (operation_list_append(game->last_operation, operation))
+        game->last_operation = game->last_operation->next;
+    return BOARD_UPDATE;
 }
 
 enum command_status command_undo(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
@@ -351,20 +421,31 @@ enum command_status command_redo(sudoku_game_t *game, __attribute__ ((unused)) c
 enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args) {
     char *path = args->arguments[0].value.str_value;
     int i, j;
+    bool solvable;
+    grb_args_t grb_args;
+
+    create_grb_validate(&grb_args, &solvable);
+
 
     if (game->mode == EDIT) {
         if (!check_board(game->board)) {
             printf("Error: Erroneous board! Aborting save...\n");
             return CMD_ERR;
         }
-        /* TODO: Replace with cheaper alternative? */
-        if (backtracking(game->board) <= 0) {
+
+        if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
+            print_gurobi_error();
+            return CMD_ERR;
+        }
+
+        if (!solvable) {
             printf("Error: Board has not solution! Aborting save...\n");
             return CMD_ERR;
         }
     }
 
     copy_board(game->board, game->temporary_board);
+
     for (i = 0; i < game->board->total_rows; i++) {
         for (j = 0; j < game->board->total_cols; j++) {
             if (get_cell_flattened(game->temporary_board, i, j) == EMPTY_CELL)
@@ -384,7 +465,9 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
 enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args) {
     int row = args->arguments[0].value.int_value - 1;
     int col = args->arguments[1].value.int_value - 1;
-    int ret_val;
+    int value;
+    bool solvable;
+    grb_args_t grb_args;
 
     if (!check_board(game->board)) {
         printf("Error: Erroneous board!\n");
@@ -398,23 +481,63 @@ enum command_status command_hint(sudoku_game_t *game, const command_arguments_t 
         printf("Error: Cell already contains a value!\n");
         return CMD_ERR;
     }
-    copy_board(game->board, game->temporary_board);
 
-    ret_val = solve_board(game->temporary_board, ILP);
-    if (ret_val == ERROR) {
+    create_grb_hint(&grb_args, &solvable, row, col, &value);
+
+    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
         print_gurobi_error();
         return CMD_ERR;
-    } else if (ret_val == UNSOLVABLE) {
+    }
+
+    if (!solvable) {
         printf("Error: The board is unsolvable.");
         return CMD_ERR;
     }
-    printf("Hint: try setting %d, %d to %d\n", row + 1, col + 1, get_cell_flattened(game->temporary_board, row, col));
+    printf("Hint: try setting %d, %d to %d\n", row + 1, col + 1, value);
 
     return DONE;
 }
 
 enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args) {
-    printf("Unimplemented [%d, %d]!\n", game->mode, args->num_arguments);
+    int row = args->arguments[0].value.int_value - 1;
+    int col = args->arguments[1].value.int_value - 1;
+    int* values, len, i;
+    bool solvable;
+    grb_args_t grb_args;
+
+    if (!check_board(game->board)) {
+        printf("Error: Erroneous board!\n");
+        return CMD_ERR;
+    }
+    if (get_cell_metadata_flattened(game->board, row, col) == FIXED_METADATA) {
+        printf("Error: The cell is fixed!\n");
+        return CMD_ERR;
+    }
+    if (get_cell_flattened(game->board, row, col) != 0) {
+        printf("Error: Cell already contains a value!\n");
+        return CMD_ERR;
+    }
+
+    values = malloc(game->board->sub_board_size * sizeof(int));
+    if (!values) {
+        EXIT_ON_ERROR("malloc")
+    }
+
+    create_grb_guess_hint(&grb_args, &solvable, row, col, values, &len);
+
+    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error();
+        free(values);
+        return CMD_ERR;
+    }
+
+    printf("My guess for <%d, %d> are the following values: [ ", row+1, col+1);
+    for (i = 0; i < len; ++i) {
+        printf("%d ", values[i]);
+    }
+    printf("].\n");
+
+    free(values);
     return DONE;
 }
 

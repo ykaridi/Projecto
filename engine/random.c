@@ -3,7 +3,6 @@
 
 #include "random.h"
 #include "../utils.h"
-#include "user_interface.h"
 
 typedef struct _cell {
     int row;
@@ -132,4 +131,47 @@ int random_fill_empty_cells(sudoku_board_t *board, int x) {
     free(empty_cells);
     choose_random_legal_value(NULL, empty_cell, TRUE);
     return SUCCESS;
+}
+
+/**
+ * Delete all but y cells in the board.
+ * @param board
+ * @param y
+ * @return
+ */
+void keep_randomly_chosen_cells(sudoku_board_t *board, int y) {
+    int k = 0, row, col;
+
+    while (k < board->total_size - y) {
+        int index = rand() % board->total_size;
+        row = index / board->total_cols;
+        col = index % board->total_rows;
+
+        if (get_cell_flattened(board, row, col) == EMPTY_CELL) {
+            continue;
+        }
+        set_cell_flattened(board, EMPTY_CELL, row, col);
+        set_cell_metadata_flattened(board, EMPTY_METADATA, row, col);
+        k++;
+    }
+}
+
+/**
+ * Choose randomly a variable according to its weight.
+ * @param list
+ * @param len
+ * @return
+ */
+int choose_var(const var_weight_t *list, int len, double weight_sum) {
+    double rand_val = ((double) rand() / RAND_MAX) * weight_sum;
+    double temp_sum = 0;
+    int i;
+    for (i = 0; i < len; ++i) {
+        if (rand_val < temp_sum) {
+            return list[i].var;
+        }
+        temp_sum += list[i].weight;
+    }
+
+    return list[len - 1].var;
 }
