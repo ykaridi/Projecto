@@ -21,10 +21,6 @@ void destruct_operation_list(operation_node_t *node) {
     operation_list_delete(node);
 }
 
-int operation_list_empty(operation_node_t *node) {
-    return node->operation == NULL;
-}
-
 void operation_list_delete(operation_node_t *node) {
     operation_node_t *next;
     if (node->prev != NULL)

@@ -130,7 +130,7 @@ void print_board(sudoku_board_t *board, int mark_errors, int mark_fixings) {
                         metadata = mark_fixings ? FIXED_METADATA : EMPTY_METADATA;
                     }
 
-                    printf("%c", metadata);
+                    printf("%c ", metadata);
                 }
             }
             printf("|\n");

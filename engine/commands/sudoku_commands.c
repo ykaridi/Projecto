@@ -550,10 +550,13 @@ command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const comman
 
 enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)) const command_arguments_t *args) {
     int i, j, v, f, t;
+    sudoku_game_operation_t *operation;
     if (check_board(game->board)) {
         printf("Error: Board is erroneous!\n");
         return CMD_ERR;
     }
+
+    operation = create_composite_game_operation(AUTOFILL, 0, 0, 0, 0);
 
     copy_board(game->board, game->temporary_board);
     for (i = 0; i < game->board->total_rows; i++) {
@@ -569,10 +572,17 @@ enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)
                 }
             }
 
-            if (f == 1)
+            if (f == 1) {
                 set_cell_flattened(game->temporary_board, v, i, j);
+                append_atomic_operation(operation, i, j, 0, v);
+            }
         }
     }
+
+    operation_list_delete_after(game->last_operation);
+    if (operation_list_append(game->last_operation, operation))
+        game->last_operation = game->last_operation->next;
+
     copy_board(game->temporary_board, game->board);
     return BOARD_UPDATE;
 }
