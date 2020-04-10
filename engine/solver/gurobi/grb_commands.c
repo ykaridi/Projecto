@@ -51,9 +51,9 @@ enum grb_output grb_command(sudoku_board_t *board, const grb_args_t *args) {
     GRBmodel *model = NULL;
     var_list_t *var_list = NULL;
     int row, col;
+    float threshold = 0;
     bool solvable;
     enum programming_type type = (args->command == GRB_GUESS || args->command == GRB_GUESS_HINT) ? LP : ILP;
-    float threshold = args->input.guess_value;
 
     if (get_enviroment(&env) != SUCCESS) {
         return GRB_ERROR;
@@ -76,8 +76,10 @@ enum grb_output grb_command(sudoku_board_t *board, const grb_args_t *args) {
 
     if (solvable) {
         switch (args->command) {
-            case GRB_SOLVE:
             case GRB_GUESS:
+                threshold = args->input.guess_value;
+                /* fall through */
+            case GRB_SOLVE:
                 if (get_solved_board(model, var_list, board, type, threshold) != SUCCESS) {
                     CLEANUP_AND_RETURN
                 }

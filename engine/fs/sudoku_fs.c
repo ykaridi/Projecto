@@ -1,5 +1,10 @@
 #include "sudoku_fs.h"
 
+#define BAD_FILE    {   destruct_board(board); \
+                        *board_ptr = NULL; \
+                        return LOAD_EBADFILE; \
+                    }
+
 /**
  * Saves the given board to the given file.
  * @param pathname  file path
@@ -49,23 +54,26 @@ enum load_file_status board_from_file(const char* pathname, sudoku_board_t** boa
         return LOAD_ENOFILE;
     }
 
-    fscanf(file, "%d %d\n", &m, &n);
+    if (fscanf(file, "%d %d\n", &m, &n) < 2) {
+        *board_ptr = NULL;
+        return LOAD_EBADFILE;
+    }
     board = *board_ptr = create_board(m, n);
 
     for (i = 0; i < board->total_rows; ++i) {
         for(j = 0; j < board->total_cols; ++j) {
             int test_dot = 0;
             if (fscanf(file, " %d ", &cell) < 1) {
-                goto _BAD_FILE;
+                BAD_FILE
             }
             if (cell < 0 || cell > board->total_rows) {
-                goto _BAD_FILE;
+                BAD_FILE
             }
             set_cell_flattened(board, cell, i, j);
             fscanf(file, " . %n", &test_dot);
             if (test_dot > 0) {
                 if (cell == 0) {
-                    goto _BAD_FILE;
+                    BAD_FILE
                 }
                 set_cell_metadata_flattened(board, FIXED_METADATA, i, j);
             }
@@ -74,9 +82,4 @@ enum load_file_status board_from_file(const char* pathname, sudoku_board_t** boa
 
     fclose(file);
     return LOAD_SUCCESS;
-
-    _BAD_FILE:
-    destruct_board(board);
-    *board_ptr = NULL;
-    return LOAD_EBADFILE;
 }
