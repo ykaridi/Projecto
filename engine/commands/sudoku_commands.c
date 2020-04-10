@@ -551,7 +551,7 @@ command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const comman
 enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)) const command_arguments_t *args) {
     int i, j, v, f, t;
     sudoku_game_operation_t *operation;
-    if (check_board(game->board)) {
+    if (!check_board(game->board)) {
         printf("Error: Board is erroneous!\n");
         return CMD_ERR;
     }
