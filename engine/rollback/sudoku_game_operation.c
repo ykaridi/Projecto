@@ -23,9 +23,12 @@ sudoku_game_operation_t *create_head_game_operation() {
 sudoku_game_operation_t *create_composite_game_operation(enum sudoku_game_operation_type operation_type, int arg1, int arg2, int arg3, float farg) {
     sudoku_game_operation_t *operation = malloc(sizeof(sudoku_game_operation_t));
     operation_node_t *operation_list = create_operation_node();
+    sudoku_game_operation_t *head = create_head_game_operation();
     if (operation == NULL || operation_list == NULL) {
         EXIT_ON_ERROR("malloc");
     }
+
+    operation_list_append(operation_list, head);
 
     operation->operation_type = operation_type;
     operation->value.composite_operation.head = operation_list;
@@ -55,7 +58,7 @@ void append_atomic_operation(sudoku_game_operation_t *composite_operation, int r
 }
 
 void undo_operation(sudoku_game_t *game, sudoku_game_operation_t *operation) {
-    operation_node_t *node = operation->value.composite_operation.head;
+    operation_node_t *node = operation->value.composite_operation.head->next;
 
     while (node != NULL) {
         set_cell_flattened(game->board, node->operation->value.atomic_operation.old_value,
@@ -64,7 +67,7 @@ void undo_operation(sudoku_game_t *game, sudoku_game_operation_t *operation) {
     }
 }
 void redo_operation(sudoku_game_t *game, sudoku_game_operation_t *operation) {
-    operation_node_t *node = operation->value.composite_operation.head;
+    operation_node_t *node = operation->value.composite_operation.head->next;
 
     while (node != NULL) {
         set_cell_flattened(game->board, node->operation->value.atomic_operation.new_value,

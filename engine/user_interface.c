@@ -52,6 +52,10 @@ void print_parsing_error(const parsing_errors_t *error, const command_t *command
 
 void print_game_operation(const sudoku_game_operation_t *operation, int undo) {
     operation_node_t *node;
+
+    if (operation->operation_type == HEAD)
+        return;
+
     if (operation->operation_type == ATOMIC) {
         printf("\tSet cell <%d, %d> to ", operation->value.atomic_operation.row + 1,
                operation->value.atomic_operation.col + 1);
