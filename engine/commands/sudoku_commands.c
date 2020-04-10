@@ -5,7 +5,7 @@
 #include "../solver/backtracking/sudoku_backtracking.h"
 #include "../user_interface.h"
 #include "../solver/gurobi/grb_commands.h"
-#include "../random.h"
+#include "../random/random.h"
 
 #define DEFAULT_NUM_ROWS (3)
 #define DEFAULT_NUM_COlS (3)
@@ -414,8 +414,8 @@ enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused
     create_grb_validate(&grb_args, &solvable);
 
     /* Check if gurubi encountered errors */
-    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
-        print_gurobi_error();
+    if (grb_command(&game->grb_env, game->board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error(game->grb_env);
         return CMD_ERR;
     }
 
@@ -430,13 +430,13 @@ enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused
 }
 
 enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args) {
-    /* TODO: Noam document */
     float x = args->arguments[0].value.float_value;
     int index;
     sudoku_game_operation_t *operation;
     bool solvable;
     grb_args_t grb_args;
 
+    /* Create an argument to grb_command representing the guess operation. */
     create_grb_guess(&grb_args, &solvable, x);
 
     if (!check_board(game->board)) {
@@ -444,8 +444,10 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
     }
 
     copy_board(game->board, game->temporary_board);
-    if (grb_command(game->temporary_board, &grb_args) != GRB_SUCCESS) {
-        print_gurobi_error();
+
+    /* Run grb_command on guess mode. */
+    if (grb_command(&game->grb_env, game->temporary_board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error(game->grb_env);
         return CMD_ERR;
     }
 
@@ -454,8 +456,8 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
         return CMD_ERR;
     }
 
+    /* Create a game operation representing the operation performed, documenting only the changed cells. */
     operation = create_composite_game_operation(GUESS, 0, 0, 0, x);
-
     for (index = 0; index < game->board->total_size; ++index) {
         int row = index / game->board->total_cols, col = index % game->board->total_rows;
         int old_value = get_cell_flattened(game->board, row, col);
@@ -466,6 +468,7 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
     }
     copy_board(game->temporary_board, game->board);
 
+    /* Append operation performed to the operations list. */
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
         game->last_operation = game->last_operation->next;
@@ -473,7 +476,6 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
 }
 
 enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args) {
-    /* TODO: Noam document */
     int x = args->arguments[0].value.int_value;
     int y = args->arguments[1].value.int_value;
     int iterations = 0, index;
@@ -481,31 +483,36 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
     bool solvable;
     grb_args_t grb_args;
 
+    /* Create an argument to grb_command representing the solve operation. */
     create_grb_solve(&grb_args, &solvable);
+
+    if (!check_board(game->board)) {
+        printf("Error: Board is erroneous!\n");
+    }
 
     if (x > empty_cells_num(game->board)) {
         printf("Error: The board does not contain %d empty cells\n", x);
         return CMD_ERR;
     }
 
-    if (!check_board(game->board)) {
-        printf("Error: Board is erroneous!\n");
-    }
-
+    /* For each iteration, try to generate a solvable board. */
     for (iterations = 0; iterations < MAX_ITERATIONS; ++iterations) {
         copy_board(game->board, game->temporary_board);
+        /* If we could not fill the cells without errors, try again. */
         if (random_fill_empty_cells(game->temporary_board, x) != SUCCESS) {
             continue;
         }
-        if (grb_command(game->temporary_board, &grb_args) != GRB_SUCCESS) {
+
+        /* Running ILP to solve the board. */
+        if (grb_command(&game->grb_env, game->temporary_board, &grb_args) != GRB_SUCCESS) {
             printf("this\n");
-            print_gurobi_error();
+            print_gurobi_error(game->grb_env);
             return CMD_ERR;
         }
         if (solvable) {
             break;
         }
-        /* else: unsolvable board*/
+        /* else: Unsolvable board, try again. */
     }
 
     if (iterations == MAX_ITERATIONS) {
@@ -513,10 +520,11 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
         return CMD_ERR;
     }
 
+    /* Remove all but y cells from the board. */
     keep_randomly_chosen_cells(game->temporary_board, y);
 
+    /* Create a game operation representing the operation performed, documenting only the changed cells. */
     operation = create_composite_game_operation(GENERATE, x, y, 0, 0);
-
     for (index = 0; index < game->board->total_size; ++index) {
         int row = index / game->board->total_cols, col = index % game->board->total_rows;
         int old_value = get_cell_flattened(game->board, row, col);
@@ -527,6 +535,7 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
     }
     copy_board(game->temporary_board, game->board);
 
+    /* Append operation performed to the operations list. */
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
         game->last_operation = game->last_operation->next;
@@ -575,7 +584,7 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
     bool solvable;
     grb_args_t grb_args;
 
-    /* TODO: Noam document */
+    /* Create an argument to grb_command representing the validate operation. */
     create_grb_validate(&grb_args, &solvable);
 
     if (game->mode == EDIT) {
@@ -584,8 +593,9 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
             return CMD_ERR;
         }
 
-        if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
-            print_gurobi_error();
+        /* Run Gurobi ILP solver on the board, validating that it is solvable. */
+        if (grb_command(&game->grb_env, game->board, &grb_args) != GRB_SUCCESS) {
+            print_gurobi_error(game->grb_env);
             return CMD_ERR;
         }
 
@@ -616,13 +626,13 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args) {
-    /* TODO: Noam document */
     int row = args->arguments[0].value.int_value - 1;
     int col = args->arguments[1].value.int_value - 1;
     int value;
     bool solvable;
     grb_args_t grb_args;
 
+    /* Checking that the board and cells are legal. */
     if (!check_board(game->board)) {
         printf("Error: Erroneous board!\n");
         return CMD_ERR;
@@ -636,10 +646,12 @@ enum command_status command_hint(sudoku_game_t *game, const command_arguments_t 
         return CMD_ERR;
     }
 
+    /* Create an argument to grb_command representing the hint operation. */
     create_grb_hint(&grb_args, &solvable, row, col, &value);
 
-    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
-        print_gurobi_error();
+    /* Run Gurobi ILP to solve the board and return the value in the given cell. */
+    if (grb_command(&game->grb_env, game->board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error(game->grb_env);
         return CMD_ERR;
     }
 
@@ -653,7 +665,6 @@ enum command_status command_hint(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args) {
-    /* TODO: Noam document */
     int row = args->arguments[0].value.int_value - 1;
     int col = args->arguments[1].value.int_value - 1;
     int* values, len, i;
@@ -678,14 +689,17 @@ enum command_status command_guess_hint(sudoku_game_t *game, const command_argume
         EXIT_ON_ERROR("malloc")
     }
 
+    /* Create an argument to grb_command representing the guess_hint operation. */
     create_grb_guess_hint(&grb_args, &solvable, row, col, values, &len);
 
-    if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
-        print_gurobi_error();
+    /* Run Gurobi LP to solve the board and return all possible values in the given cell. */
+    if (grb_command(&game->grb_env, game->board, &grb_args) != GRB_SUCCESS) {
+        print_gurobi_error(game->grb_env);
         free(values);
         return CMD_ERR;
     }
 
+    /* Print the possible values */
     printf("My guess for <%d, %d> are the following values: [ ", row+1, col+1);
     for (i = 0; i < len; ++i) {
         printf("%d ", values[i]);

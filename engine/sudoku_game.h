@@ -1,6 +1,9 @@
 #include "sudoku_board.h"
 #include "rollback/operation_list.h"
 
+#include "gurobi_c.h"
+
+
 #ifndef SUDOKU_GAME_H
 #define SUDOKU_GAME_H
 
@@ -16,6 +19,7 @@ typedef struct _sudoku_game {
 
     sudoku_board_t *board;
     sudoku_board_t *temporary_board;
+    GRBenv* grb_env;
 } sudoku_game_t;
 
 sudoku_game_t* create_game();

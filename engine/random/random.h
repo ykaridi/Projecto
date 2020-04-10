@@ -1,7 +1,7 @@
 #ifndef PROJECTOHW3_RANDOM_H
 #define PROJECTOHW3_RANDOM_H
 
-#include "sudoku_board.h"
+#include "../sudoku_board.h"
 
 typedef struct _var_weight{
     int var;

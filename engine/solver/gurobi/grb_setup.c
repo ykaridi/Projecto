@@ -1,49 +1,38 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "sudoku_grb.h"
-#include "../../../utils.h"
-#include "../../sudoku_board.h"
-#include "sudoku_var_list.h"
-#include "../../random.h"
+#include "grb_setup.h"
 
 /** Gets the gurobi environment.
  * @param env_ptr
  * @return SUCCESS/ERROR value. env_ptr can change on error.
  */
 int get_enviroment(GRBenv **env_ptr) {
-    static GRBenv *environment = NULL;
-    if (environment != NULL) {
-        *env_ptr = environment;
+    if (*env_ptr != NULL) {
         return SUCCESS;
     }
 
-    if (GRBemptyenv(&environment)) {
+    if (GRBemptyenv(env_ptr)) {
         return ERROR;
     }
     /* Set the log file */
-    if (GRBsetstrparam(environment, "LogFile", LOG_FILE)) {
-        GRBfreeenv(environment);
-        environment = NULL;
+    if (GRBsetstrparam(*env_ptr, "LogFile", LOG_FILE)) {
+        GRBfreeenv(*env_ptr);
+        *env_ptr = NULL;
         return ERROR;
     }
+
     /* Start the enviroment */
-    if (GRBstartenv(environment)) {
-        GRBfreeenv(environment);
-        environment = NULL;
+    if (GRBstartenv(*env_ptr)) {
+        GRBfreeenv(*env_ptr);
+        *env_ptr = NULL;
         return ERROR;
     }
 
     if (!GURUBI_OUTPUT) {
-        if (GRBsetintparam(environment, "OutputFlag", 0)) {
-            GRBfreeenv(environment);
-            environment = NULL;
+        if (GRBsetintparam(*env_ptr, "OutputFlag", 0)) {
+            GRBfreeenv(*env_ptr);
+            *env_ptr = NULL;
             return ERROR;
         }
     }
-
-    *env_ptr = environment;
     return SUCCESS;
 }
 
@@ -148,7 +137,6 @@ int add_variables(GRBmodel *model, const var_list_t *var_list, enum programming_
     free(ub);
     return SUCCESS;
 }
-
 
 /**
  * Adding constraints after the variables are added.
@@ -273,7 +261,6 @@ int add_constraints(GRBmodel *model, const var_list_t *var_list) {
     return SUCCESS;
 }
 
-
 /**
  * setup the variables and constraints from the given board.
  * @param model
@@ -320,199 +307,5 @@ int run_gurobi_on_board(GRBmodel *model, var_list_t *var_list, enum programming_
         return ERROR;
     }
 
-    return SUCCESS;
-}
-
-
-/**
- * Checks if an already optimized model is solvable.
- * @param model
- * @param solvable
- * @return SUCCESS/ERROR
- */
-int optimized_model_is_solvable(GRBmodel *model, bool *solvable) {
-    int optimstatus;
-
-    if (GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus)) {
-        return ERROR;
-    }
-
-    if (optimstatus == GRB_OPTIMAL) {
-        *solvable = true;
-    } else {
-        *solvable = false;
-    }
-    return SUCCESS;
-}
-
-
-/**
- * returns value that needs to be put in the cell_lists' cell, after running ILP.
- * @param cell_list
- * @param outputs
- * @return
- */
-int get_value_from_outputs_ilp(const cell_var_list_t *cell_list, const double *outputs) {
-    int v, size = cell_list->max_size, var = 0;
-
-    for (v = 0; v < size; v++) {
-        if (cell_list->vars[v].taken) {
-            if (outputs[var++] == 1) {
-                return v + 1;
-            }
-        }
-    }
-    return 0;
-}
-
-
-/**
- * returns value that needs to be put in the cell_lists' cell, after running LP.
- * @param cell_list
- * @param board
- * @param outputs
- * @param row
- * @param col
- */
-int get_value_from_outputs_lp(const cell_var_list_t *cell_list, sudoku_board_t *board, const double *outputs, int row,
-                              int col,
-                              float threshold) {
-    int v, size = cell_list->max_size, var = 0, possible_outputs_len = 0;
-    var_weight_t *possible_outputs = malloc(cell_list->num_vars * sizeof(var_weight_t));
-    double weight_sum = 0;
-    if (!possible_outputs) {
-        EXIT_ON_ERROR("malloc")
-    }
-
-    for (v = 0; v < size; v++) {
-        if (cell_list->vars[v].taken) {
-            /* TODO: change this to O(n) */
-            if (outputs[var] >= threshold && check_value_flattened(board, v + 1, row, col)) {
-                possible_outputs[possible_outputs_len].var = v;
-                possible_outputs[possible_outputs_len].weight = outputs[var];
-                possible_outputs_len++;
-                weight_sum += outputs[var];
-            }
-            var++;
-        }
-    }
-    if (possible_outputs_len > 0) {
-        v = choose_var(possible_outputs, possible_outputs_len, weight_sum) + 1;
-    } else {
-        v = 0;
-    }
-
-    free(possible_outputs);
-    return v;
-}
-
-
-/**
- * Gets an optimized model and var_list and sets the board according to the solution.
- * @param model
- * @param var_list
- * @param board
- * @param type
- * @param threshold This is ignored for ILP mode.
- * @return
- */
-int get_solved_board(GRBmodel *model, const var_list_t *var_list, sudoku_board_t *board,
-                     enum programming_type type, float threshold) {
-    int i, j, index = 0, size = var_list->size, v;
-    double *outputs;
-
-
-    outputs = malloc(size * sizeof(double));
-    if (!outputs) {
-        EXIT_ON_ERROR("malloc")
-    }
-
-    for (i = 0; i < board->total_rows; ++i) {
-        for (j = 0; j < board->total_cols; ++j) {
-            cell_var_list_t *cell_list = var_list->cell_vars[i][j];
-            if (cell_list->num_vars == 0)
-                continue;
-
-            if (GRBgetdblattrarray(model, GRB_DBL_ATTR_X, index, cell_list->num_vars, outputs)) {
-                free(outputs);
-                return ERROR;
-            }
-            index += cell_list->num_vars;
-            if (type == ILP) {
-                v = get_value_from_outputs_ilp(cell_list, outputs);
-            } else {
-                v = get_value_from_outputs_lp(cell_list, board, outputs, i, j, threshold);
-            }
-            set_cell_flattened(board, v, i, j);
-        }
-    }
-
-    free(outputs);
-    return SUCCESS;
-}
-
-/**
- * Gets a cell from an optimized model. Assumes that there is a solution.
- * @param model
- * @param var_list
- * @param value
- * @param row
- * @param col
- * @return
- */
-int get_single_cell_ilp(GRBmodel *model, const cell_var_list_t *var_list, int *value) {
-    int v;
-    double *outputs = malloc(var_list->max_size * sizeof(double));
-
-    if (!outputs) {
-        EXIT_ON_ERROR("malloc")
-    }
-
-    for (v = 0; v < var_list->max_size; ++v) {
-        if (var_list->vars[v].taken) {
-            break;
-        }
-    }
-
-    if (GRBgetdblattrarray(model, GRB_DBL_ATTR_X, var_list->vars[v].index, var_list->num_vars, outputs)) {
-        free(outputs);
-        return ERROR;
-    }
-
-    *value = get_value_from_outputs_ilp(var_list, outputs);
-
-    free(outputs);
-    return SUCCESS;
-}
-
-
-int get_single_cell_lp(GRBmodel *model, const cell_var_list_t *var_list, int *values, int *len) {
-    int v, output_index = 0;
-    double *outputs = malloc(var_list->max_size * sizeof(double));
-
-    if (!outputs) {
-        EXIT_ON_ERROR("malloc")
-    }
-
-    for (v = 0; v < var_list->max_size; ++v) {
-        if (var_list->vars[v].taken) {
-            break;
-        }
-    }
-
-    if (GRBgetdblattrarray(model, GRB_DBL_ATTR_X, var_list->vars[v].index, var_list->num_vars, outputs)) {
-        free(outputs);
-        return ERROR;
-    }
-
-    *len = 0;
-    for (v = 0; v < var_list->max_size; v++) {
-        if (var_list->vars[v].taken) {
-            if (outputs[output_index++] > 0) {
-                values[(*len)++] = v;
-            }
-        }
-    }
-    free(outputs);
     return SUCCESS;
 }

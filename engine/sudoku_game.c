@@ -1,5 +1,4 @@
 #include "sudoku_game.h"
-#include "../utils.h"
 #include "fs/sudoku_fs.h"
 
 /**
@@ -19,6 +18,7 @@ sudoku_game_t* create_game() {
     game->board = NULL;
     game->temporary_board = NULL;
     game->last_operation = NULL;
+    game->grb_env = NULL;
 
     return game;
 }
@@ -60,6 +60,9 @@ void destruct_game(sudoku_game_t *game) {
 
     if (game->last_operation != NULL)
         destruct_operation_list(game->last_operation);
+
+    if (game->grb_env != NULL)
+        GRBfreeenv(game->grb_env);
 
     free(game);
 }
