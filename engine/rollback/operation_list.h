@@ -6,6 +6,9 @@ typedef struct _operation_node operation_node_t;
 #include "sudoku_game_operation.h"
 #include "../../utils.h"
 
+/**
+ * A struct for a doubly linked operation list (for undo/redo)
+ */
 struct _operation_node {
     sudoku_game_operation_t *operation;
     struct _operation_node *prev;

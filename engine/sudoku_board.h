@@ -18,6 +18,9 @@
 #define EMPTY_METADATA (' ')
 #define ERROR_METADATA ('*')
 
+/**
+ * A struct representing a sudoku board
+ */
 typedef struct _sudoku_board {
     int rows;
     int cols;

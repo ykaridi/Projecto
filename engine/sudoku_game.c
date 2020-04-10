@@ -2,9 +2,14 @@
 #include "../utils.h"
 #include "fs/sudoku_fs.h"
 
+/**
+ * Create a sudoku game object
+ * @return Pointer to the game object
+ */
 sudoku_game_t* create_game() {
     sudoku_game_t *game = malloc(sizeof(sudoku_game_t));
 
+    /* Check if malloc was successful */
     if (game == NULL) {
         EXIT_ON_ERROR("malloc");
     }
@@ -17,6 +22,12 @@ sudoku_game_t* create_game() {
 
     return game;
 }
+
+/**
+ * Load a new board into the sudoku game
+ * @param game
+ * @param board
+ */
 void load_board(sudoku_game_t *game, sudoku_board_t *board) {
     operation_node_t *operations = create_operation_node();
 
@@ -24,6 +35,7 @@ void load_board(sudoku_game_t *game, sudoku_board_t *board) {
         EXIT_ON_ERROR("malloc");
     }
 
+    /* Free game objects, if previously allocated */
     if (game->board != NULL)
         destruct_board(game->board);
     game->board = board;
@@ -37,6 +49,9 @@ void load_board(sudoku_game_t *game, sudoku_board_t *board) {
     game->last_operation = operations;
 }
 
+/**
+ * Destroy (destroy) the sudoku game object
+ */
 void destruct_game(sudoku_game_t *game) {
     if (game->board != NULL)
         destruct_board(game->board);

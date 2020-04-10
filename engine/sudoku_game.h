@@ -6,6 +6,9 @@
 
 enum sudoku_mode {INIT = 0, EDIT = 1, SOLVE = 2};
 
+/**
+ * A struct represnting a sudoku game
+ */
 typedef struct _sudoku_game {
     int mark_errors;
     enum sudoku_mode mode;

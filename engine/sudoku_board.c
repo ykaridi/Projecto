@@ -4,13 +4,12 @@
 #include <stdio.h>
 
 /**
- * Dynamically allocates a sudoku board object
- * @param rows Number of rows
- * @param cols Number of columns
- * @return Sudoku board object (pointer)
+ * Create a sudoku board object
+ * @param
+ * @param
+ * @return Pointer to the board object
  */
 sudoku_board_t *create_board(int rows, int cols) {
-    int i;
     sudoku_board_t *board;
 
     board = malloc(sizeof(sudoku_board_t));
@@ -26,21 +25,19 @@ sudoku_board_t *create_board(int rows, int cols) {
 
     board->board = malloc(sizeof(int) * rows * rows * cols * cols);
     board->cell_metadata = malloc(sizeof(char) * rows * rows * cols * cols);
+    /* Check if malloc was successful */
     if (board->board == NULL || board->cell_metadata == NULL) {
         EXIT_ON_ERROR("malloc");
     }
 
-    for (i = 0; i < board->total_size; i++) {
-        board->board[i] = EMPTY_CELL;
-        board->cell_metadata[i] = EMPTY_METADATA;
-    }
-
+    /* Clear board */
+    force_clear_board(board);
     return board;
 }
 
 /**
- * Destructs (frees) a sudoku board object
- * @param board Sudoku board object
+ * Destroy (free) a sudoku board object
+ * @param board
  */
 void destruct_board(sudoku_board_t *board) {
     free(board->board);
@@ -50,7 +47,7 @@ void destruct_board(sudoku_board_t *board) {
 
 /**
  * Clears board of temporary cells
- * @param board Sudoku board object
+ * @param board
  */
 void clear_board_temps(sudoku_board_t *board) {
     int i, j = 0;
@@ -67,7 +64,7 @@ void clear_board_temps(sudoku_board_t *board) {
 
 /**
  * Clears all board, including metadata
- * @param board Sudoku board object
+ * @param board
  */
 void force_clear_board(sudoku_board_t *board) {
     int i = 0;
@@ -108,7 +105,7 @@ int is_in_board(const sudoku_board_t *board, int sub_board_i, int sub_board_j, i
 
 /**
  * Checks if an index is valid
- * @param board Sudoku board object
+ * @param board
  * @param i
  * @param j
  * @return 1 = In board, 0 = Invalid (not in board)
@@ -119,7 +116,7 @@ int is_in_board_flattened(const sudoku_board_t *board, int i, int j) {
 
 /**
  * Returns a cell's value
- * @param board Sudoku board object
+ * @param board
  * @param sub_board_i
  * @param sub_board_j
  * @param inner_i
@@ -134,7 +131,7 @@ int get_cell(const sudoku_board_t *board, int sub_board_i, int sub_board_j, int 
 
 /**
  * Returns a cell's value
- * @param board Sudoku board object
+ * @param board
  * @param i
  * @param j
  * @return Cell value (or ERROR on error)
@@ -145,7 +142,7 @@ int get_cell_flattened(const sudoku_board_t *board, int i, int j) {
 
 /**
  * Sets a cell's value
- * @param board Sudoku board object
+ * @param board
  * @param value Cell's new value
  * @param sub_board_i
  * @param sub_board_j
@@ -156,6 +153,7 @@ int get_cell_flattened(const sudoku_board_t *board, int i, int j) {
 int set_cell(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
+    /* Check cell isn't fixed */
     if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
         return ERROR;
 
@@ -165,7 +163,7 @@ int set_cell(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j,
 
 /**
  * Sets a cell's value
- * @param board Sudoku board object
+ * @param board
  * @param value Cell's new value
  * @param i
  * @param j
@@ -177,7 +175,7 @@ int set_cell_flattened(sudoku_board_t *board, int value, int i, int j) {
 
 /**
  * Returns a cell's metadata
- * @param board Sudoku board object
+ * @param board
  * @param sub_board_i
  * @param sub_board_j
  * @param inner_i
@@ -192,7 +190,7 @@ char get_cell_metadata(const sudoku_board_t *board, int sub_board_i, int sub_boa
 
 /**
  * Returns a cell's metadata
- * @param board Sudoku board object
+ * @param board
  * @param i
  * @param j
  * @return Cell metadata (or ERROR on error)
@@ -203,7 +201,7 @@ char get_cell_metadata_flattened(const sudoku_board_t *board, int i, int j) {
 
 /**
  * Sets a cell's metadata
- * @param board Sudoku board object
+ * @param board
  * @param metadata Cell's new metadata
  * @param sub_board_i
  * @param sub_board_j
@@ -215,6 +213,7 @@ int
 set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
+    /* Check cell isn't fixed */
     if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
         return ERROR;
 
@@ -224,7 +223,7 @@ set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub
 
 /**
  * Sets a cell's metadata
- * @param board Sudoku board object
+ * @param board
  * @param metadata Cell's new metadata
  * @param i
  * @param j
@@ -250,9 +249,11 @@ int check_row(const sudoku_board_t *board, int row, int value) {
             continue;
 
         if (value > 0) {
+            /* Check if value was found in row */
             if (current_cell == value)
                 return FALSE;
         } else {
+            /* Check if some other cell has a colliding value */
             for (col2 = col1 + 1; col2 < board->total_cols; col2++) {
                 if (current_cell == get_cell_flattened(board, row, col2))
                     return FALSE;
@@ -279,9 +280,11 @@ int check_column(const sudoku_board_t *board, int col, int value) {
             continue;
 
         if (value > 0) {
+            /* Check if value was found in column */
             if (current_cell == value)
                 return FALSE;
         } else {
+            /* Check if some other cell has a colliding value */
             for (row2 = row1 + 1; row2 < board->total_rows; row2++) {
                 if (current_cell == get_cell_flattened(board, row2, col))
                     return FALSE;
@@ -309,9 +312,11 @@ int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_
                 continue;
 
             if (value > 0) {
+                /* Check if value was found in sub board */
                 if (current_cell == value)
                     return FALSE;
             } else {
+                /* Check if some other cell has a colliding value */
                 for (inner_i2 = 0; inner_i2 < board->rows; inner_i2++) {
                     for (inner_j2 = 0; inner_j2 < board->cols; inner_j2++) {
                         if (inner_i1 == inner_i2 && inner_j1 == inner_j2)
@@ -329,12 +334,14 @@ int check_sub_board(const sudoku_board_t *board, int sub_board_i, int sub_board_
 }
 
 /**
- * Checks if a board is solved correctly
- * @param board Sudoku board object
- * @return success flag
+ * Check if board contains an error
+ * @param board
+ * @return
  */
 int check_board(const sudoku_board_t *board) {
     int i, j = 0;
+
+    /* Iterate over all row, columns and sub boards and check them for errors */
     for (i = 0; i < board->total_rows; i++) {
         if (check_row(board, i, 0) == FALSE)
             return FALSE;
@@ -355,30 +362,46 @@ int check_board(const sudoku_board_t *board) {
 
 
 /**
- * Checks if we can add value to board[i][j]
+ * Checks if value is legal
  * @param board
+ * @param value
  * @param i
  * @param j
  * @return
  */
 int check_value_flattened(sudoku_board_t *board, int value, int i, int j) {
     int old_value = get_cell_flattened(board, i, j), ret = 0;
+    /* Temporarily empty cell */
     if (value != 0)
         set_cell_flattened(board, 0, i, j);
+
+    /* Check the appropriate row, column and sub board */
     ret = check_row(board, i, value)
             && check_column(board, j, value)
             && check_sub_board(board, SUB_BOARD_CONVERSION, value);
+
+    /* Restore cell value */
     if (value != 0)
         set_cell_flattened(board, old_value, i, j);
     return ret;
 }
 
+/**
+ * Checks if value is legal
+ * @param board
+ * @param value
+ * @param sub_board_i
+ * @param sub_board_j
+ * @param inner_i
+ * @param inner_j
+ * @return
+ */
 int check_value(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     return check_value_flattened(board, value, FULL_CONVERSION);
 }
 
 /**
- * return True if there are no free spaces in the board.
+ * Checks if all cells in the board are set
  * @param board
  * @return
  */
@@ -395,7 +418,7 @@ int is_board_full(const sudoku_board_t *board) {
 }
 
 /**
- * Returns number of empty cells in board.
+ * Counts number of empty cells in board
  * @param board
  * @return
  */

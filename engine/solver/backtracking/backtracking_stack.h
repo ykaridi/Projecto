@@ -1,11 +1,17 @@
 #ifndef STACK_H
 #define STACK_H
 
+/**
+ * A struct representing a single item in the backtracking stack simulation
+ */
 typedef struct _backtracking_stack_node {
      int idx;
      struct _backtracking_stack_node *prev;
 } backtracking_stack_node_t;
 
+/**
+ * A struct representing the backtracking stack (for recursion simulation)
+ */
 typedef struct _backtracking_stack {
     backtracking_stack_node_t *head;
 } backtracking_stack_t;

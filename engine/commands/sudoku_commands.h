@@ -9,7 +9,7 @@
 #define MAX_ITERATIONS (1000)
 
 /**
- * A list of available commands
+ * A struct representing a list of available commands
  */
 typedef struct _command_list {
     int num_commands;

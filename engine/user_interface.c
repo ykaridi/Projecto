@@ -1,5 +1,10 @@
 #include "user_interface.h"
 
+/**
+ * Print command parser error
+ * @param error
+ * @param command
+ */
 void print_parsing_error(const parsing_errors_t *error, const command_t *command) {
     switch(error->error_type) {
         case NO_COMMAND:
@@ -50,6 +55,11 @@ void print_parsing_error(const parsing_errors_t *error, const command_t *command
     }
 }
 
+/**
+ * Prints a game operation, enumerates over all changes done to board
+ * @param operation
+ * @param undo Undo/Redo flag
+ */
 void print_game_operation(const sudoku_game_operation_t *operation, int undo) {
     operation_node_t *node;
 
@@ -92,6 +102,7 @@ void print_game_operation(const sudoku_game_operation_t *operation, int undo) {
             break;
     }
 
+    /* Iterate over atomic operations comprising the composite operation */
     node = operation->value.composite_operation.head;
     while (node != NULL) {
         print_game_operation(node->operation, undo);
@@ -127,6 +138,7 @@ void print_board(sudoku_board_t *board, int mark_errors, int mark_fixings) {
                         printf("%*s%d", n_len - value_length, "", cell_value);
                     }
 
+                    /* Take mark errors and mark fixings flags into consideration */
                     if (metadata == EMPTY_METADATA && mark_errors && cell_value != EMPTY_CELL) {
                         metadata = check_value(board, cell_value, sub_board_i, sub_board_j, inner_i, inner_j)
                                 ? EMPTY_METADATA : ERROR_METADATA;

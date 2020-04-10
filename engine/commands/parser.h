@@ -7,6 +7,9 @@
 #define DELIM " \t\r\n"
 #define DELIM_WITH_NULL " \t\r\n\x00"
 
+/**
+ *
+ */
 enum parsing_error_types {
     NO_ERROR = -1,
     NO_COMMAND = 0,

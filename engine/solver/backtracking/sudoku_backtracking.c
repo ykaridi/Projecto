@@ -2,6 +2,11 @@
 #include "../../sudoku_board.h"
 #include "backtracking_stack.h"
 
+/**
+ * Performs exhaustive backtracking to count the amount of solutions a sudoku board has
+ * @param board
+ * @return
+ */
 int backtracking(sudoku_board_t *board) {
     int idx = 0, row = 0, col = 0, num_sols = 0, v;
     backtracking_stack_t *stack;

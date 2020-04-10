@@ -10,40 +10,155 @@
 #define DEFAULT_NUM_ROWS (3)
 #define DEFAULT_NUM_COlS (3)
 
+/**
+ * Solve command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_solve(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Edit command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_edit(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Mark errors command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_mark_errors(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Print board command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_print_board(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Set command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_set(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Validate command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_validate(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Guess command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Generate command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Undo command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_undo(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Redo command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_redo(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Save command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_save(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Hint command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Guess hint command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Num solutions command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_num_solutions(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Autofill command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_autofill(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Reset command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_reset(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Exit command
+ * @param game
+ * @param args
+ * @return
+ */
 enum command_status command_exit(sudoku_game_t *game, const command_arguments_t *args);
 
+/**
+ * Create a command object
+ * @param name
+ * @param num_args
+ * @param arg1
+ * @param arg2
+ * @param arg3
+ * @param available_init
+ * @param available_edit
+ * @param available_solve
+ * @param function Pointer to command logic
+ * @return Pointer to the command object
+ */
 command_t construct_command(const char *name, int num_args, command_argument_description_t *arg1,
                             command_argument_description_t *arg2, command_argument_description_t *arg3,
                             int available_init,
@@ -68,7 +183,12 @@ command_t construct_command(const char *name, int num_args, command_argument_des
     return command;
 }
 
+/**
+ * Load possible commands into a command list object
+ * @param command_list
+ */
 void load_commands(command_list_t *command_list) {
+    /* Construct the possible argument descriptions */
     command_argument_description_t _generic_integer = {
             INTEGER, FALSE, FALSE, {-1}, {-1}
     };
@@ -107,6 +227,7 @@ void load_commands(command_list_t *command_list) {
     command_argument_description_t *integer_boardsize_min1 = &command_list->possible_arguments.integer_boardsize_min1;
     command_argument_description_t *optional_string = &command_list->possible_arguments.optional_string;
 
+    /* Load argument descriptions to command list object */
     *generic_integer = _generic_integer;
     *generic_string = _generic_string;
     *zo_float = _zo_float;
@@ -117,6 +238,7 @@ void load_commands(command_list_t *command_list) {
     *integer_boardsize_min1 = _integer_boardsize_min1;
     *optional_string = _optional_string;
 
+    /* Load commands to command list object */
     command_list->num_commands = NUM_COMMANDS;
 
     command_list->commands[0] = construct_command("solve", 1, generic_string, NULL, NULL, TRUE, TRUE, TRUE,
@@ -149,6 +271,11 @@ void load_commands(command_list_t *command_list) {
     command_list->commands[16] = construct_command("exit", 0, NULL, NULL, NULL, TRUE, TRUE, TRUE, command_exit);
 }
 
+/**
+ * Update argument descriptions according to current board state
+ * @param command_list
+ * @param game
+ */
 void update_arguments(command_list_t *command_list, const sudoku_game_t *game) {
     command_list->possible_arguments.integer_boardidx_min0.upper_bound.int_value = game->board->sub_board_size;
     command_list->possible_arguments.integer_boardidx_min1.upper_bound.int_value = game->board->sub_board_size;
@@ -168,9 +295,11 @@ enum command_status command_solve(sudoku_game_t *game, const command_arguments_t
     char *path;
     int row, col;
 
+    /* Attempt loading file */
     path = args->arguments[0].value.str_value;
     status = board_from_file(path, &board);
 
+    /* Check if there were errors loading file */
     switch (status) {
         case LOAD_ENOFILE:
             printf("Error: No such file!\n");
@@ -182,6 +311,7 @@ enum command_status command_solve(sudoku_game_t *game, const command_arguments_t
             break;
     }
 
+    /* Copy fixed cells to a temporary board, to check they are not erroneous */
     temp_board = create_board(board->rows, board->cols);
     copy_board(board, temp_board);
     for (row = 0; row < temp_board->total_rows; row++) {
@@ -193,6 +323,7 @@ enum command_status command_solve(sudoku_game_t *game, const command_arguments_t
         }
     }
 
+    /* Check if board consisting of fixed cells is erroneous */
     if (!check_board(temp_board)) {
         printf("Error: Board is erroneous!\n");
         destruct_board(board);
@@ -200,6 +331,7 @@ enum command_status command_solve(sudoku_game_t *game, const command_arguments_t
         return CMD_ERR;
     }
 
+    /* Destruct temporary board and load board into the game object */
     destruct_board(temp_board);
     load_board(game, board);
     game->mode = SOLVE;
@@ -211,12 +343,15 @@ enum command_status command_edit(sudoku_game_t *game, const command_arguments_t 
     enum load_file_status status;
     char *path;
 
+    /* Check if a path argument was supplied */
     if (args->num_arguments == 0) {
         board = create_board(DEFAULT_NUM_ROWS, DEFAULT_NUM_COlS);
     } else {
+        /* Attempt loading board from file */
         path = args->arguments[0].value.str_value;
         status = board_from_file(path, &board);
 
+        /* Check if there were errors loading the board from file */
         switch (status) {
             case LOAD_ENOFILE:
                 printf("Error: No such file!\n");
@@ -229,17 +364,20 @@ enum command_status command_edit(sudoku_game_t *game, const command_arguments_t 
         }
     }
 
+    /* Load board into game object */
     load_board(game, board);
     game->mode = EDIT;
     return PARAMETER_UPDATE;
 }
 
 enum command_status command_mark_errors(sudoku_game_t *game, const command_arguments_t *args) {
+    /* Update the mark errors flag */
     game->mark_errors = args->arguments[0].value.int_value;
     return DONE;
 }
 
 enum command_status command_print_board(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
+    /* Print the current board, regarding the mark errors flag and game mode */
     print_board(game->board, game->mode == EDIT || game->mark_errors, game->mode != EDIT);
     return DONE;
 }
@@ -249,17 +387,22 @@ enum command_status command_set(sudoku_game_t *game, const command_arguments_t *
     int old_value = get_cell_flattened(game->board, row, col), new_value = args->arguments[2].value.int_value;
     sudoku_game_operation_t *operation;
 
+    /* Check if cell is fixed and game mode is solve */
     if (game->mode == SOLVE && get_cell_metadata_flattened(game->board, row, col) == FIXED_METADATA) {
         printf("Error: Can't edit fixed cell in solve mode!\n");
         return CMD_ERR;
     }
 
+    /* Create a game operation representing the operation performed */
     operation = create_composite_game_operation(SET, row + 1, col + 1, new_value, 0);
     append_atomic_operation(operation, row, col, old_value, new_value);
 
+    /* Append operation performed to the operations list */
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
         game->last_operation = game->last_operation->next;
+
+    /* Update board */
     set_cell_flattened(game->board, new_value, row, col);
     return BOARD_UPDATE;
 }
@@ -270,11 +413,13 @@ enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused
 
     create_grb_validate(&grb_args, &solvable);
 
+    /* Check if gurubi encountered errors */
     if (grb_command(game->board, &grb_args) != GRB_SUCCESS) {
         print_gurobi_error();
         return CMD_ERR;
     }
 
+    /* Print to user the solvability of the board */
     if (solvable) {
         printf("Board has a solution!\n");
     } else {
@@ -285,6 +430,7 @@ enum command_status command_validate(sudoku_game_t *game, __attribute__ ((unused
 }
 
 enum command_status command_guess(sudoku_game_t *game, const command_arguments_t *args) {
+    /* TODO: Noam document */
     float x = args->arguments[0].value.float_value;
     int index;
     sudoku_game_operation_t *operation;
@@ -327,6 +473,7 @@ enum command_status command_guess(sudoku_game_t *game, const command_arguments_t
 }
 
 enum command_status command_generate(sudoku_game_t *game, const command_arguments_t *args) {
+    /* TODO: Noam document */
     int x = args->arguments[0].value.int_value;
     int y = args->arguments[1].value.int_value;
     int iterations = 0, index;
@@ -389,7 +536,9 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
 enum command_status command_undo(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     sudoku_game_operation_t *operation;
 
+    /* Check if there is an operation to undo */
     if (game->last_operation->operation->operation_type != HEAD) {
+        /* Undo latest operation */
         operation = game->last_operation->operation;
         game->last_operation = game->last_operation->prev;
         undo_operation(game, operation);
@@ -405,7 +554,9 @@ enum command_status command_undo(sudoku_game_t *game, __attribute__ ((unused)) c
 enum command_status command_redo(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     sudoku_game_operation_t *operation;
 
+    /* Check if there is an operation to redo */
     if (game->last_operation->next != NULL) {
+        /* Redo latest operation */
         game->last_operation = game->last_operation->next;
         operation = game->last_operation->operation;
         redo_operation(game, operation);
@@ -424,8 +575,8 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
     bool solvable;
     grb_args_t grb_args;
 
+    /* TODO: Noam document */
     create_grb_validate(&grb_args, &solvable);
-
 
     if (game->mode == EDIT) {
         if (!check_board(game->board)) {
@@ -444,8 +595,8 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
         }
     }
 
+    /* Copy board to a temporary board, replacing metadata of non-empty cell with fixed cell metadata */
     copy_board(game->board, game->temporary_board);
-
     for (i = 0; i < game->board->total_rows; i++) {
         for (j = 0; j < game->board->total_cols; j++) {
             if (get_cell_flattened(game->temporary_board, i, j) == EMPTY_CELL)
@@ -454,6 +605,8 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
                 set_cell_metadata_flattened(game->temporary_board, FIXED_METADATA, i, j);
         }
     }
+
+    /* Attempt saving board to file */
     if (save_board_to_file(path, game->temporary_board) != SUCCESS) {
         printf("Error: Encountered an error while saving board to file! [err=%s]\n", strerror(errno));
         return CMD_ERR;
@@ -463,6 +616,7 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_hint(sudoku_game_t *game, const command_arguments_t *args) {
+    /* TODO: Noam document */
     int row = args->arguments[0].value.int_value - 1;
     int col = args->arguments[1].value.int_value - 1;
     int value;
@@ -499,6 +653,7 @@ enum command_status command_hint(sudoku_game_t *game, const command_arguments_t 
 }
 
 enum command_status command_guess_hint(sudoku_game_t *game, const command_arguments_t *args) {
+    /* TODO: Noam document */
     int row = args->arguments[0].value.int_value - 1;
     int col = args->arguments[1].value.int_value - 1;
     int* values, len, i;
@@ -543,6 +698,7 @@ enum command_status command_guess_hint(sudoku_game_t *game, const command_argume
 
 enum command_status
 command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
+    /* Compute the number of solutions the board has using exhaustive backtracking */
     int num_solutions = backtracking(game->board);
     printf("Current board has [%d] solution(s).\n", num_solutions);
     return DONE;
@@ -551,19 +707,23 @@ command_num_solutions(sudoku_game_t *game, __attribute__ ((unused)) const comman
 enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)) const command_arguments_t *args) {
     int i, j, v, f, t;
     sudoku_game_operation_t *operation;
+    /* Check if board contains errors */
     if (!check_board(game->board)) {
         printf("Error: Board is erroneous!\n");
         return CMD_ERR;
     }
 
+    /* Create a game operation object representing the operation performed */
     operation = create_composite_game_operation(AUTOFILL, 0, 0, 0, 0);
 
+    /* Iterate over all cells, and check if they have an obvious value, update value in a temporary copy */
     copy_board(game->board, game->temporary_board);
     for (i = 0; i < game->board->total_rows; i++) {
         for (j = 0; j < game->board->total_cols; j++) {
             if (get_cell_flattened(game->board, i, j) != EMPTY_CELL)
                 continue;
 
+            /* Check if the current cell has only one possible value */
             f = 0, v = 0;
             for(t = 1; t <= game->board->sub_board_size; t++) {
                 if (check_value_flattened(game->board, t, i, j)) {
@@ -573,16 +733,19 @@ enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)
             }
 
             if (f == 1) {
+                /* Update temporary board with obvious value */
                 set_cell_flattened(game->temporary_board, v, i, j);
                 append_atomic_operation(operation, i, j, 0, v);
             }
         }
     }
 
+    /* Append the operation performed to the game operations list */
     operation_list_delete_after(game->last_operation);
     if (operation_list_append(game->last_operation, operation))
         game->last_operation = game->last_operation->next;
 
+    /* Update the board */
     copy_board(game->temporary_board, game->board);
     return BOARD_UPDATE;
 }
@@ -590,6 +753,7 @@ enum command_status command_autofill(sudoku_game_t *game, __attribute__((unused)
 enum command_status command_reset(sudoku_game_t *game, __attribute__ ((unused)) const command_arguments_t *args) {
     sudoku_game_operation_t *operation;
 
+    /* Undo all operations done to the board */
     while (game->last_operation->operation->operation_type != HEAD) {
         operation = game->last_operation->operation;
         game->last_operation = game->last_operation->prev;

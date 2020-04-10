@@ -8,7 +8,7 @@
 #define MAX_ARGS (3)
 
 /**
- * Argument type, integer or string
+ * An enum for command argument type
  */
 enum argument_type {INTEGER = 0, STRING = 1, FLOAT = 2};
 
@@ -20,12 +20,18 @@ typedef struct _command_argument_description {
     enum argument_type argument_type;
     int optional;
 
-    /* Only for integers */
+    /* Only for numerical arguments */
     int enforce_range;
+    /**
+     * A union for the lower bound on the argument
+     */
     union _lower_bound {
         int int_value;
         float float_value;
     } lower_bound;
+    /**
+     * A union for the upper bound on the argument
+     */
     union _upper_bound {
         int int_value;
         float float_value;
@@ -33,7 +39,7 @@ typedef struct _command_argument_description {
 } command_argument_description_t;
 
 /**
- * A command argument list description.
+ * A struct representing a command argument list description.
  */
 typedef struct _command_arguments_description {
     int num_arguments;
@@ -41,11 +47,14 @@ typedef struct _command_arguments_description {
 } command_arguments_description_t;
 
 /**
- * A command argument, includes type and value (as a pointer)
+ * A struct representing command argument, includes type and value (as a pointer)
  */
 typedef struct _command_argument {
     enum argument_type type;
     int supplied;
+    /**
+     * A union for the argument value, over possible types
+     */
     union value_t {
         char *str_value;
         int int_value;
@@ -54,7 +63,7 @@ typedef struct _command_argument {
 } command_argument_t;
 
 /**
- * List of arguments passed to a command.
+ * A struct representing a list of arguments passed to a command.
  */
 typedef struct _command_arguments {
     int num_arguments;
@@ -62,7 +71,7 @@ typedef struct _command_arguments {
 } command_arguments_t;
 
 /**
- * Modes a command is available in
+ * A struct containing the modes a command is available in
  */
 typedef struct _modes_availability {
     int init;
@@ -70,6 +79,9 @@ typedef struct _modes_availability {
     int solve;
 } modes_availability_t;
 
+/**
+ * An enum for command execution status
+ */
 enum command_status {
     EXIT_PROGRAM = -1,
     DONE = 0,
@@ -79,13 +91,17 @@ enum command_status {
 };
 
 /**
- * A command, includes description and pointer to handler function
+ * A struct representing a command, includes description and pointer to handler function
  */
 typedef struct _command {
     const char *command_name;
     command_arguments_description_t args;
     modes_availability_t modes_of_availability;
 
+    /**
+     * Pointer to the command logic (function)
+     * @return
+     */
     enum command_status (*function)(sudoku_game_t *, const command_arguments_t *);
 } command_t;
 
