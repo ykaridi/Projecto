@@ -45,6 +45,7 @@ sudoku_board_t *create_board(int rows, int cols) {
 void destruct_board(sudoku_board_t *board) {
     free(board->board);
     free(board->cell_metadata);
+    free(board);
 }
 
 /**

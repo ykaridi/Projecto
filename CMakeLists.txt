@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(ProjectoHW3 C)
 
-set(CMAKE_C_FLAGS "-ansi -Wall -Wextra -Werror -pedantic-errors ${CMAKE_C_FLAGS}")
+set(CMAKE_C_FLAGS "-ansi -Wall -Wextra -Werror -pedantic-errors -ggdb3 ${CMAKE_C_FLAGS}")
 
 set(GUROBI_INCLUDE_DIRECTORY "/opt/gurobi901/linux64/include")
 include_directories(${GUROBI_INCLUDE_DIRECTORY})

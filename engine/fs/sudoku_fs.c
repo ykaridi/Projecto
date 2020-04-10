@@ -19,7 +19,7 @@ int save_board_to_file(const char* pathname, const sudoku_board_t* board) {
     for(i = 0; i < board -> total_rows; ++i) {
         for(j = 0; j < board -> total_cols; ++j) {
             fprintf(file, "%d", get_cell_flattened(board, i, j));
-            if (get_cell_flattened(board, i, j) == FIXED_METADATA) {
+            if (get_cell_metadata_flattened(board, i, j) == FIXED_METADATA) {
                 fprintf(file, ".");
             }
             if (j < board -> total_cols - 1) {

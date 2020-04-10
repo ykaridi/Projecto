@@ -85,6 +85,7 @@ void free_var_list(var_list_t* list) {
         }
         free(list->cell_vars[i]);
     }
+    free(list->cell_vars);
     free(list);
 }
 
