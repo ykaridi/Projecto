@@ -208,7 +208,7 @@ void load_commands(command_list_t *command_list) {
             INTEGER, FALSE, TRUE, {1}, {-1}
     };
     command_argument_description_t _integer_boardsize_min0 = {
-            INTEGER, FALSE, TRUE, {1}, {-1}
+            INTEGER, FALSE, TRUE, {0}, {-1}
     };
     command_argument_description_t _integer_boardsize_min1 = {
             INTEGER, FALSE, TRUE, {1}, {-1}

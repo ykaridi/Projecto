@@ -9,23 +9,11 @@ int get_enviroment(GRBenv **env_ptr) {
         return SUCCESS;
     }
 
-    if (GRBemptyenv(env_ptr)) {
-        return ERROR;
-    }
-    /* Set the log file */
-    if (GRBsetstrparam(*env_ptr, "LogFile", LOG_FILE)) {
-        GRBfreeenv(*env_ptr);
-        *env_ptr = NULL;
+    if (GRBloadenv(env_ptr, LOG_FILE)) {
         return ERROR;
     }
 
-    /* Start the enviroment */
-    if (GRBstartenv(*env_ptr)) {
-        GRBfreeenv(*env_ptr);
-        *env_ptr = NULL;
-        return ERROR;
-    }
-
+    /* For debugging. */
     if (!GURUBI_OUTPUT) {
         if (GRBsetintparam(*env_ptr, "OutputFlag", 0)) {
             GRBfreeenv(*env_ptr);
