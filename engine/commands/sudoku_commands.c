@@ -365,6 +365,7 @@ enum command_status command_edit(sudoku_game_t *game, const command_arguments_t 
     }
 
     /* Load board into game object */
+    clear_board_metadata(board);
     load_board(game, board);
     game->mode = EDIT;
     return PARAMETER_UPDATE;

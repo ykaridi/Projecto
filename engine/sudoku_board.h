@@ -36,6 +36,7 @@ typedef struct _sudoku_board {
 sudoku_board_t* create_board(int rows, int cols);
 void destruct_board(sudoku_board_t *board);
 void clear_board_temps(sudoku_board_t *board);
+void clear_board_metadata(sudoku_board_t *board);
 void force_clear_board(sudoku_board_t *board);
 void copy_board(sudoku_board_t *board_in, sudoku_board_t *board_out);
 

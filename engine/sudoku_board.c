@@ -63,6 +63,20 @@ void clear_board_temps(sudoku_board_t *board) {
 }
 
 /**
+ * Clears all metadata of the board
+ * @param board
+ */
+void clear_board_metadata(sudoku_board_t *board) {
+    int i, j = 0;
+
+    for (i = 0; i < board->total_rows; i++) {
+        for (j = 0; j < board->total_cols; j++) {
+            set_cell_metadata_flattened(board, EMPTY_METADATA, i, j);
+        }
+    }
+}
+
+/**
  * Clears all board, including metadata
  * @param board
  */
