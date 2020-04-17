@@ -58,6 +58,10 @@ enum load_file_status board_from_file(const char* pathname, sudoku_board_t** boa
         *board_ptr = NULL;
         return LOAD_EBADFILE;
     }
+    if (m <= 0 || n <= 0) {
+        *board_ptr = NULL;
+        return LOAD_EBADFILE;
+    }
     board = *board_ptr = create_board(m, n);
 
     for (i = 0; i < board->total_rows; ++i) {
