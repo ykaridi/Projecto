@@ -505,7 +505,6 @@ enum command_status command_generate(sudoku_game_t *game, const command_argument
 
         /* Running ILP to solve the board. */
         if (grb_command(&game->grb_env, game->temporary_board, &grb_args) != GRB_SUCCESS) {
-            printf("this\n");
             print_gurobi_error(game->grb_env);
             return CMD_ERR;
         }

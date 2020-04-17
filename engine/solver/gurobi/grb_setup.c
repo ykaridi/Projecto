@@ -15,7 +15,7 @@ int get_enviroment(GRBenv **env_ptr) {
 
     /* For debugging. */
     if (!GURUBI_OUTPUT) {
-        if (GRBsetintparam(*env_ptr, "OutputFlag", 0)) {
+        if (GRBsetintparam(*env_ptr, GRB_INT_PAR_LOGTOCONSOLE, 0)) {
             GRBfreeenv(*env_ptr);
             *env_ptr = NULL;
             return ERROR;
@@ -262,22 +262,19 @@ int add_constraints(GRBmodel *model, const var_list_t *var_list) {
  * @return SUCCESS/ERROR
  */
 int setup_model(GRBmodel *model, var_list_t *var_list, enum programming_type prog_type) {
-
     if (add_variables(model, var_list, prog_type) != SUCCESS) {
-        free_var_list(var_list);
-        GRBfreemodel(model);
         return ERROR;
     }
 
     if (GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE)) {
-        free_var_list(var_list);
-        GRBfreemodel(model);
+        return ERROR;
+    }
+
+    if (GRBupdatemodel(model)) {
         return ERROR;
     }
 
     if (add_constraints(model, var_list) != SUCCESS) {
-        free_var_list(var_list);
-        GRBfreemodel(model);
         return ERROR;
     }
 

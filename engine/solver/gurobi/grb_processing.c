@@ -134,7 +134,6 @@ int get_value_from_outputs_lp(const cell_var_list_t *cell_list, sudoku_board_t *
 
     for (v = 0; v < size; v++) {
         if (cell_list->vars[v].taken) {
-            /* TODO: change this to O(n) */
             if (outputs[var] >= threshold && check_value_flattened(board, v + 1, row, col)) {
                 possible_outputs[possible_outputs_len].var = v;
                 possible_outputs[possible_outputs_len].weight = outputs[var];
