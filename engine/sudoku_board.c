@@ -167,9 +167,6 @@ int get_cell_flattened(const sudoku_board_t *board, int i, int j) {
 int set_cell(sudoku_board_t *board, int value, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
         return ERROR;
-    /* Check cell isn't fixed */
-    if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
-        return ERROR;
 
     board->board[ARR_CONVERSION] = value;
     return SUCCESS;
@@ -226,9 +223,6 @@ char get_cell_metadata_flattened(const sudoku_board_t *board, int i, int j) {
 int
 set_cell_metadata(sudoku_board_t *board, char metadata, int sub_board_i, int sub_board_j, int inner_i, int inner_j) {
     if (!is_in_board(board, sub_board_i, sub_board_j, inner_i, inner_j))
-        return ERROR;
-    /* Check cell isn't fixed */
-    if (get_cell_metadata(board, sub_board_i, sub_board_j, inner_i, inner_j) == FIXED_METADATA)
         return ERROR;
 
     board->cell_metadata[ARR_CONVERSION] = metadata;
