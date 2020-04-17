@@ -9,23 +9,11 @@ int get_enviroment(GRBenv **env_ptr) {
         return SUCCESS;
     }
 
-    if (GRBemptyenv(env_ptr)) {
-        return ERROR;
-    }
-    /* Set the log file */
-    if (GRBsetstrparam(*env_ptr, "LogFile", LOG_FILE)) {
-        GRBfreeenv(*env_ptr);
-        *env_ptr = NULL;
+    if (GRBloadenv(env_ptr, LOG_FILE)) {
         return ERROR;
     }
 
-    /* Start the enviroment */
-    if (GRBstartenv(*env_ptr)) {
-        GRBfreeenv(*env_ptr);
-        *env_ptr = NULL;
-        return ERROR;
-    }
-
+    /* For debugging. */
     if (!GURUBI_OUTPUT) {
         if (GRBsetintparam(*env_ptr, "OutputFlag", 0)) {
             GRBfreeenv(*env_ptr);
@@ -84,8 +72,8 @@ var_list_t *get_variables(sudoku_board_t *board) {
  */
 int add_variables(GRBmodel *model, const var_list_t *var_list, enum programming_type prog_type) {
     int i, j, size = var_list->size;
-    double *obj;
-    char *vtype;
+    double *obj = NULL;
+    char *vtype = NULL;
     double *lb = NULL, *ub = NULL;
     char type;
 
@@ -104,18 +92,23 @@ int add_variables(GRBmodel *model, const var_list_t *var_list, enum programming_
             ub[i] = 1.0;
         }
     }
+    if (prog_type == LP) {
+        obj = malloc(size * sizeof(double));
+        if (!obj) {
+            EXIT_ON_ERROR("malloc")
+        }
+        for (i = 0; i < size; ++i) {
+            obj[i] = 1;
+        }
+    }
     vtype = malloc(size * sizeof(char));
     if (!vtype) {
         EXIT_ON_ERROR("malloc")
     }
-    obj = malloc(size * sizeof(double));
-    if (!obj) {
-        EXIT_ON_ERROR("malloc")
-    }
     for (i = 0; i < size; ++i) {
-        obj[i] = 1;
         vtype[i] = type;
     }
+
 
     /* Adding the variables */
     for (i = 0; i < size; ++i) {

@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "sudoku_var_list.h"
 #include "../../../utils.h"
 
@@ -11,7 +9,7 @@
 cell_var_list_t *init_cell_var_list(int size) {
     cell_var_list_t *cell_var_list = malloc(sizeof(cell_var_list_t));
     if (!cell_var_list) {
-        EXIT_ON_ERROR("malloc");
+        EXIT_ON_ERROR("malloc")
     }
     cell_var_list->max_size = size;
     cell_var_list->num_vars = 0;
@@ -43,8 +41,6 @@ void cell_list_add_var(cell_var_list_t *list, int k, int index) {
 
 /**
  * initialize the var list.
- * @param size
- * @return
  */
 var_list_t *init_var_list(int rows, int cols) {
     int i, j, size = rows * cols;

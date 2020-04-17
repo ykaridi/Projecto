@@ -1,11 +1,23 @@
 #ifndef SUDOKU_VAR_LIST_H
 #define SUDOKU_VAR_LIST_H
 
+/**
+ * The variable lists hold data about the variables in the gurobi model.
+ */
+
+/**
+ * This is a helper struct for cell_var_list.
+ */
 typedef struct _variable{
+    /* Is the variable used in the specific cell variable list. */
     int taken;
+    /* The index of the variable in the gurobi model. */
     int index;
 } variable_t;
 
+/**
+ * This struct holds a list of variables for a specific cell in the board.
+ */
 typedef struct _cell_var_list {
     /* number of variables taken */
     int num_vars;
@@ -15,6 +27,9 @@ typedef struct _cell_var_list {
     variable_t* vars;
 } cell_var_list_t;
 
+/**
+ * A variable list for the whole board.
+ */
 typedef struct _var_list {
     /* The whole board is size*size. */
     int rows;
