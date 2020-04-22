@@ -18,7 +18,6 @@ struct _operation_node {
 operation_node_t *create_operation_node();
 void destruct_operation_list(operation_node_t *head);
 
-int operation_list_empty(operation_node_t *node);
 void operation_list_delete(operation_node_t *node);
 void operation_list_delete_after(operation_node_t *node);
 int operation_list_append(operation_node_t *node, sudoku_game_operation_t *operation);

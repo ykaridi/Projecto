@@ -8,7 +8,7 @@
 #define DELIM_WITH_NULL " \t\r\n\x00"
 
 /**
- *
+ * Enum for parsing error types
  */
 enum parsing_error_types {
     NO_ERROR = -1,
@@ -20,6 +20,9 @@ enum parsing_error_types {
     EMPTY_COMMAND = 5
 };
 
+/**
+ * An object for holding parsing errors, to display to user
+ */
 typedef struct _parsing_errors {
     enum parsing_error_types error_type;
     int param_index;
