@@ -9,6 +9,11 @@
 #include "grb_utils.h"
 #include "sudoku_var_list.h"
 
+/** 
+ * This union is used in the proccess_single_cell function.
+ * The first type is used to proccess a board solved with ilp,
+ * and the second is used to proccess a board solved with lp.
+ */
 typedef union _single_cell_input_bare {
     int *ilp_value;
 
@@ -18,6 +23,10 @@ typedef union _single_cell_input_bare {
     } lp_value;
 } single_cell_input_bare_t;
 
+/**
+ * Added the programming type to the bare union, so it could be used in
+ * proccess_single_cell.
+ */
 typedef struct _single_cell_input {
     enum programming_type type;
 
