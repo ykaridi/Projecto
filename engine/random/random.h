@@ -3,6 +3,10 @@
 
 #include "../sudoku_board.h"
 
+/**
+ * A tuple of (var, weight). 
+ * Used to choose a random variable. 
+ */
 typedef struct _var_weight{
     int var;
     double weight;
