@@ -611,7 +611,7 @@ enum command_status command_save(sudoku_game_t *game, const command_arguments_t 
         for (j = 0; j < game->board->total_cols; j++) {
             if (get_cell_flattened(game->temporary_board, i, j) == EMPTY_CELL)
                 set_cell_metadata_flattened(game->temporary_board, EMPTY_METADATA, i, j);
-            else
+            else if (game->mode == EDIT)
                 set_cell_metadata_flattened(game->temporary_board, FIXED_METADATA, i, j);
         }
     }
